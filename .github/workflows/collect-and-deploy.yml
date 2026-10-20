@@ -1,0 +1,92 @@
+name: Collect hydrogen stations and deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Best effort; GitHub can delay/drop scheduled runs. One request per public-map run.
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: hydrogenstation-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'schedule' || vars.PAUSE_H2_COLLECTION != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v6.1.0
+        with:
+          path: public/data
+          key: hydrogenstation-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: hydrogenstation-v1-
+      - name: Collect official public H2 information
+        id: collect
+        continue-on-error: true
+        env:
+          HYDROGEN_SERVICE_KEY: ${{ secrets.HYDROGEN_SERVICE_KEY }}
+        run: python3 scripts/collect.py
+      - uses: actions/cache/save@v6.1.0
+        if: always()
+        with:
+          path: public/data
+          key: hydrogenstation-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Report collection failure separately
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo '::warning::Collection failed. Original confirmation times and last complete snapshot are preserved.'
+          echo '### Collection failed; last complete snapshot retained' >> "$GITHUB_STEP_SUMMARY"
+          echo 'See data-status.html. Deployment success does not imply fresh source data.' >> "$GITHUB_STEP_SUMMARY"
+      - run: npm run check
+      - run: npm test
+        if: github.event_name != 'schedule'
+      - name: Build and verify snapshot
+        env:
+          PUBLIC_NAVER_MAP_CLIENT_ID: ${{ vars.PUBLIC_NAVER_MAP_CLIENT_ID }}
+          PUBLIC_ADFIT_BANNER_UNIT: ${{ vars.PUBLIC_ADFIT_BANNER_UNIT }}
+          SCHEDULED_COLLECTION_ENABLED: ${{ vars.PAUSE_H2_COLLECTION != 'true' }}
+        run: npm run build
+      - uses: actions/configure-pages@v6.0.0
+      - uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: dist
+          name: hydrogenstation-pages-${{ github.run_attempt }}
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
+        with:
+          artifact_name: hydrogenstation-pages-${{ github.run_attempt }}
+      - name: Verify published application
+        env:
+          DEPLOYMENT_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_REVISION: ${{ github.sha }}
+        run: npm run verify:deployment

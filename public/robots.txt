@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://softm.github.io/hydrogenstation/sitemap.xml

@@ -1,0 +1,10 @@
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
+const base=(process.env.DEPLOYMENT_URL||'https://softm.github.io/hydrogenstation/').replace(/\/?$/,'/');
+const get=async path=>{const r=await fetch(new URL(path,base),{signal:AbortSignal.timeout(20000),cache:'no-store'});if(!r.ok)throw new Error(`${path}: HTTP ${r.status}`);return r;};
+const index=await (await get('')).text();if(!index.includes('수소한눈')||!index.includes('data-status.html'))throw new Error('Wrong application');
+await get('data-status.html');await get('privacy.html');
+const info=await (await get('build-info.json')).json();if(process.env.EXPECTED_REVISION&&info.sourceRevision!==process.env.EXPECTED_REVISION)throw new Error('Deployed source revision mismatch');
+const m=await (await get('data/manifest.json')).json();const zipped=Buffer.from(await(await get('data/'+m.file.gzipPath)).arrayBuffer());const bytes=gunzipSync(zipped),payload=JSON.parse(bytes);
+if(createHash('sha256').update(bytes).digest('hex')!==m.file.sha256||payload.stations.length!==m.totalStations||zipped.length!==m.file.gzipBytes)throw new Error('Published snapshot mismatch');
+console.log(`Verified ${base}: source ${info.sourceRevision}; ${m.totalStations} stations; data-status and gzip/SHA-256 OK. Collection freshness is assessed separately.`);

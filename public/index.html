@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>수소한눈 · 가까운 수소충전소와 수소 가격</title>
+  <meta name="description" content="전국 수소차 충전소를 지도에서 찾고, 원/kg 수소 가격·차종·운영시간·대기 현황을 비교하세요. 한국석유관리원 하잉 공개 정보 기반.">
+  <meta name="theme-color" content="#075f66"><meta property="og:title" content="수소한눈 · 수소충전소 지도"><meta property="og:description" content="가까운 수소충전소, 가격부터 운영정보까지 한눈에.">
+  <link rel="canonical" href="https://softm.github.io/hydrogenstation/"><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./css/app.css"><link rel="stylesheet" href="./css/ads.css">
+  <script src="./config.js"></script><script src="./ad-config.js"></script><script type="module" src="./js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#list">충전소 목록 바로가기</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="수소한눈 홈"><span class="brand-icon">H₂</span><span>수소한눈<small>HYDROGEN, NEAR YOU</small></span></a>
+    <p class="top-message">충전할 곳, 가격까지 한눈에.</p>
+    <nav aria-label="서비스 메뉴"><a href="https://softm.github.io/evchargingstation/" target="_blank" rel="noopener noreferrer" class="sibling">전기차 충전 ↗</a><a href="./data-status.html">수집현황 ↗</a></nav>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar" aria-label="충전소 검색과 목록">
+      <section class="search-controls">
+        <div class="title-row"><h1>어디서 충전할까요?</h1><span class="source-pill">공식 출처 기반</span></div>
+        <form id="search-form" role="search"><label class="search-box"><span aria-hidden="true">⌕</span><input id="keyword" type="search" aria-label="충전소명 또는 주소 검색" placeholder="충전소명, 지역, 주소 검색" autocomplete="off"><button type="submit" aria-label="검색">검색</button></label></form>
+        <div class="filter-row"><label><span class="sr-only">지역</span><select id="region"><option value="">전국</option></select></label><label><span class="sr-only">차량 종류</span><select id="vehicle"><option value="car">승용차 이용</option><option value="">전체 차종</option><option value="bus">버스 이용</option><option value="truck">트럭 이용</option></select></label><button class="filter-toggle" id="more-filters" aria-expanded="false" aria-controls="extra-filters">상세조건</button></div>
+        <div id="extra-filters" hidden><div class="filter-row"><label>설비 표기<select id="pressure"><option value="">전체 압력</option><option value="700">700 bar</option><option value="800">800 bar</option><option value="350">350 bar</option></select></label><label>가격 상한(원/kg)<input id="max-price" type="number" min="1" step="100" placeholder="제한 없음"></label></div><p class="micro">설비 압력 표기는 차량의 지원 충전압력과 다를 수 있습니다.</p></div>
+        <div class="quick-filters"><label class="chip"><input id="open-only" type="checkbox"><span><i class="dot available"></i>영업 확인</span></label><label class="chip"><input id="favorites-only" type="checkbox"><span>☆ 관심 충전소</span></label><button id="reset" class="text-btn">초기화</button></div>
+      </section>
+      <div class="list-meta"><div><strong id="result-count">—</strong><span>곳</span><small id="scope-label">불러오는 중</small></div><label><span class="sr-only">정렬</span><select id="sort"><option value="name">이름순</option><option value="price">가격 낮은순</option><option value="distance">가까운순</option><option value="queue">대기 적은순</option></select></label></div>
+      <div id="list" class="station-list" tabindex="-1" aria-label="충전소 목록" aria-busy="true"><div class="empty"><div class="empty-symbol">H₂</div><h2>충전소를 찾고 있어요</h2><p>수집된 공식 정보를 확인하고 있습니다.</p></div></div>
+      <footer class="sidebar-footer"><span id="collected-at">수집 시각 확인 중</span><button id="refresh" class="text-btn">새로고침</button><a href="./privacy.html">개인정보</a></footer>
+    </aside>
+    <section class="map-section" aria-label="수소충전소 지도">
+      <div id="map" class="map"></div>
+      <div class="map-top" data-map-obstacle><button id="nation" class="map-action">전국 보기</button><button id="locate" class="map-action">◎ 내 위치</button><button id="view-toggle" class="map-action mobile-only" aria-pressed="false">목록 크게</button></div>
+      <div class="map-search" data-map-obstacle><button id="search-area">↻ 이 지역 검색</button><label><input id="auto-search" type="checkbox" checked> 지도 이동 시 자동검색</label></div>
+      <div class="map-legend" data-map-obstacle><span><i class="dot available"></i>여유·영업</span><span><i class="dot busy"></i>혼잡</span><span><i class="dot unavailable"></i>마감·점검</span><span><i class="dot unknown"></i>확인 지연</span></div>
+      <section id="detail" class="detail" aria-label="충전소 상세정보" hidden data-map-obstacle></section>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript><p class="noscript">충전소 지도와 검색을 사용하려면 JavaScript를 켜 주세요. <a href="https://www.h2nbiz.or.kr/rt/sch/rtSearch.do?tabNo=1">공식 하잉에서 보기</a></p></noscript>
+</body>
+</html>
