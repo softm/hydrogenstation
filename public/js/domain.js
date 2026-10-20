@@ -68,3 +68,13 @@ export function regionCenter(stations) {
   if (!rows.length) return null;
   return {lat:rows.reduce((sum,s)=>sum+s.lat,0)/rows.length,lng:rows.reduce((sum,s)=>sum+s.lng,0)/rows.length};
 }
+export function fittedView(stations,width,height) {
+  const rows=stations.filter(s=>finiteValue(s.lat)&&finiteValue(s.lng));
+  if(!rows.length)return null;
+  const project=lat=>Math.log(Math.tan(Math.PI/4+lat*Math.PI/360))/(2*Math.PI);
+  const xs=rows.map(s=>s.lng/360),ys=rows.map(s=>project(s.lat));
+  const west=Math.min(...xs),east=Math.max(...xs),south=Math.min(...ys),north=Math.max(...ys);
+  const spanX=Math.max(east-west,0.0001),spanY=Math.max(north-south,0.0001);
+  const zoom=Math.max(5,Math.min(12,Math.floor(Math.min(Math.log2(Math.max(100,width-100)/(256*spanX)),Math.log2(Math.max(100,height-100)/(256*spanY))))));
+  return {center:{lat:Math.atan(Math.sinh((south+north)*Math.PI))*180/Math.PI,lng:(west+east)*180},zoom};
+}

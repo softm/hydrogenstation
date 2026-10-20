@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {statusOf,queryStations,distanceKm,todayHours} from '../public/js/domain.js';
+import {statusOf,queryStations,distanceKm,todayHours,fittedView} from '../public/js/domain.js';
 import {buildMarkerModels,markerHtml,createViewportGate} from '../public/js/map.js';
 const now=Date.parse('2026-10-21T01:00:00Z');
 const fixture={id:'001HSABC',name:'가 충전소',address:'충남 서산',region:'충남',lat:36.8,lng:126.4,vehicles:['car'],pricePerKg:9900,statusLabel:'여유',operationCode:'0',waitingTotal:0,observedAt:'2026-10-21T00:59:00Z',upstreamCheckedAt:'2026-10-21T00:58:00Z'};
@@ -42,4 +42,10 @@ test('KST weekday, explicit rest day and unknown hours remain distinct',()=>{
   assert.equal(todayHours(s,new Date('2026-10-20T23:00:00Z')),'08:00–22:00');
   assert.equal(todayHours(s,new Date('2026-10-24T23:00:00Z')),'정기 휴무');
   assert.ok(distanceKm({lat:37.5,lng:127},fixture)>0);
+});
+test('nationwide fit includes Jeju on narrow mobile map and can use a closer desktop view',()=>{
+  const points=[{lat:33.2,lng:126.1},{lat:38.4,lng:129.5}];
+  const mobile=fittedView(points,390,337),desktop=fittedView(points,950,850);
+  assert.ok(mobile.zoom<desktop.zoom);assert.ok(mobile.zoom>=5);assert.ok(mobile.center.lat>33.2&&mobile.center.lat<38.4);
+  assert.equal(fittedView([],390,337),null);
 });

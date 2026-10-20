@@ -26,7 +26,7 @@ export function parseSharedView(params) {
   const center = { lat: Number(latitude), lng: Number(longitude) };
   if (!isCoordinate(center)) return null;
   const zoom = Number(params.get('z'));
-  return { center, zoom: Number.isFinite(zoom) && zoom >= 6 && zoom <= 19 ? zoom : 14 };
+  return { center, zoom: Number.isFinite(zoom) && zoom >= 5 && zoom <= 19 ? zoom : 14 };
 }
 
 export function normalizeBounds(bounds) {
@@ -237,7 +237,7 @@ function installStyles() {
 }
 
 function leafletEngine(L, canvas, { userChange, settled, select, background, tileFailure, tileSuccess }) {
-  const map = L.map(canvas, { center: [INITIAL_CENTER.lat, INITIAL_CENTER.lng], zoom: 12, minZoom: 6, maxZoom: 19,
+  const map = L.map(canvas, { center: [INITIAL_CENTER.lat, INITIAL_CENTER.lng], zoom: 12, minZoom: 5, maxZoom: 19,
     zoomControl: false, attributionControl: true, scrollWheelZoom: true, touchZoom: true, keyboard: true,
     maxBounds: [[31.5, 122], [41, 135]], maxBoundsViscosity: 0.8 });
   const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19,
@@ -256,13 +256,13 @@ function leafletEngine(L, canvas, { userChange, settled, select, background, til
     update(marker, model) { marker.setLatLng([model.station.lat, model.station.lng]); marker.setIcon(icon(model)); marker.setZIndexOffset(model.selected ? 5000 : 0); },
     remove(marker) { marker.remove(); },
     addLocation(point) { return L.marker([point.lat, point.lng], { icon: L.divIcon({ html: '<div class="ev-map-current"></div>', className: 'ev-leaflet-icon', iconSize: [18, 18], iconAnchor: [9, 9] }), interactive: false, keyboard: false, zIndexOffset: 6000 }).addTo(map); },
-    resize() { map.invalidateSize({ animate: false, pan: false, debounceMoveend: true }); },
+    resize() { const center = map.getCenter(), zoom = map.getZoom(); map.invalidateSize({ animate: false, pan: true, debounceMoveend: true }); map.setView(center, zoom, { animate: false }); },
     destroy() { map.remove(); }
   };
 }
 
 function naverEngine(N, canvas, { userChange, settled, select, background }) {
-  const map = new N.Map(canvas, { center: new N.LatLng(INITIAL_CENTER.lat, INITIAL_CENTER.lng), zoom: 12, minZoom: 6, maxZoom: 19,
+  const map = new N.Map(canvas, { center: new N.LatLng(INITIAL_CENTER.lat, INITIAL_CENTER.lng), zoom: 12, minZoom: 5, maxZoom: 19,
     zoomControl: false, mapTypeControl: false, scaleControl: true, logoControl: true, mapDataControl: true,
     scrollWheel: true, pinchZoom: true, draggable: true, keyboardShortcuts: true });
   const listeners = [];
@@ -495,7 +495,7 @@ export async function createMap({ container, config = {}, onSelect = () => {}, o
     if (!button || !engine) return;
     event.stopPropagation();
     userChange();
-    engine.setView(engine.getCenter(), Math.max(6, Math.min(19, engine.getZoom() + Number(button.dataset.mapZoom))));
+    engine.setView(engine.getCenter(), Math.max(5, Math.min(19, engine.getZoom() + Number(button.dataset.mapZoom))));
     settled();
   });
 
@@ -507,7 +507,7 @@ export async function createMap({ container, config = {}, onSelect = () => {}, o
       cancelAnimationFrame(focusFrame);
       gate.preserve();
       selection = station.id;
-      requestedView = { point: { lat: station.lat, lng: station.lng }, zoom: Math.max(6, Math.min(19, Number.isFinite(zoom) ? zoom : 15)) };
+      requestedView = { point: { lat: station.lat, lng: station.lng }, zoom: Math.max(5, Math.min(19, Number.isFinite(zoom) ? zoom : 15)) };
       engine?.setView(requestedView.point, requestedView.zoom);
       draw();
       focusFrame = requestAnimationFrame(() => {
@@ -526,7 +526,7 @@ export async function createMap({ container, config = {}, onSelect = () => {}, o
     setCenter(point, zoom) {
       if (!isCoordinate(point) || destroyed) return false;
       userChange('programmatic');
-      requestedView = { point: { lat: point.lat, lng: point.lng }, zoom: Math.max(6, Math.min(19, Number.isFinite(zoom) ? zoom : engine?.getZoom() || 14)) };
+      requestedView = { point: { lat: point.lat, lng: point.lng }, zoom: Math.max(5, Math.min(19, Number.isFinite(zoom) ? zoom : engine?.getZoom() || 14)) };
       engine?.setView(requestedView.point, requestedView.zoom);
       settled();
       return true;
