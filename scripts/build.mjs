@@ -30,3 +30,17 @@ if(ad.unit&&!validAdUnit(ad.unit))throw new Error('Invalid AdFit unit');
 await writeFile(new URL('ad-config.js',output),'window.H2_AD_CONFIG = Object.freeze('+JSON.stringify(ad)+');\n');
 await writeFile(new URL('build-info.json',output),JSON.stringify({version:'1.0.0',builtAt:new Date().toISOString(),sourceRevision:process.env.GITHUB_SHA||null,scheduledCollectionEnabled:process.env.SCHEDULED_COLLECTION_ENABLED==='true',source:m.source.type,stationCount:m.totalStations},null,2)+'\n');
 console.log(`Built dist/: ${stations.length} real H2 stations; ${json.byteLength} -> ${gzip.byteLength} bytes. gzip and SHA-256 verified.`);
+
+// Version entry scripts and their module dependencies to avoid mixed deployments in browser caches.
+const assetVersion=process.env.GITHUB_SHA||createHash('sha256').update(await readFile(new URL('public/js/data-status.js',root))).digest('hex').slice(0,12);
+for(const file of await readdir(new URL('js/',output))){
+ if(!file.endsWith('.js'))continue;
+ const path=new URL('js/'+file,output);
+ const source=await readFile(path,'utf8');
+ await writeFile(path,source.replace(/(from\s*['"])(\.\.?\/[^'"?]+\.js)(['"])/g,`$1$2?v=${assetVersion}$3`));
+}
+for(const file of await readdir(output)){
+ if(!file.endsWith('.html'))continue;
+ const path=new URL(file,output);
+ await writeFile(path,(await readFile(path,'utf8')).replace(/(<script[^>]+src=")([^"?]+\.js)(")/g,`$1$2?v=${assetVersion}$3`));
+}
