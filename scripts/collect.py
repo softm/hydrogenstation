@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 
@@ -210,6 +211,25 @@ def publish(rows,output,now,source,previous=None):
         if old.name not in [filename,filename+'.gz']: old.unlink()
     return manifest
 
+def record_attempt(output, started_at, started_clock, outcome, source, previous, count=None, code=None):
+    """Bounded public audit log; never store URLs containing keys or raw errors."""
+    path = output/'collection-history.json'
+    try:
+        history = json.loads(path.read_text())
+        if not isinstance(history, list): history = []
+    except (OSError, ValueError):
+        history = []
+    run_id = os.environ.get('GITHUB_RUN_ID', '')
+    run_url = ('https://github.com/softm/hydrogenstation/actions/runs/'+run_id) if run_id.isdigit() else None
+    entry = {'startedAt':started_at, 'finishedAt':utcnow(),
+             'durationSeconds':round(time.monotonic()-started_clock, 3),
+             'outcome':outcome, 'source':source, 'count':count, 'code':code,
+             'previousCount':previous.get('totalStations') if previous else None,
+             'lastSuccessAt':started_at if outcome=='success' else previous.get('generatedAt') if previous else None,
+             'trigger':os.environ.get('GITHUB_EVENT_NAME','local'), 'runUrl':run_url}
+    write_json(path, (history+[entry])[-500:])
+    return entry
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--output',default='public/data')
@@ -217,7 +237,8 @@ def main():
     args=parser.parse_args()
     output=pathlib.Path(args.output);output.mkdir(parents=True,exist_ok=True)
     prev=json.loads((output/'manifest.json').read_text()) if (output/'manifest.json').exists() else None
-    now=utcnow()
+    now=utcnow();started_clock=time.monotonic()
+    source='official-api' if os.environ.get('HYDROGEN_SERVICE_KEY','').strip() and not args.input else 'public-map'
     try:
         key=os.environ.get('HYDROGEN_SERVICE_KEY','').strip()
         if key and not args.input:
@@ -228,12 +249,14 @@ def main():
             if not isinstance(payload.get('data'),list): raise ValueError('PUBLIC_RESPONSE_CONTRACT_CHANGED')
             rows=[normalize(r,now) for r in payload['data']];source='public-map'
         manifest=publish(rows,output,now,source,prev)
+        record_attempt(output,now,started_clock,'success',source,prev,len(rows))
         print(json.dumps({'status':'success','count':manifest['totalStations'],'source':source,'bytes':manifest['file']['bytes'],'gzipBytes':manifest['file']['gzipBytes']}))
         return 0
     except Exception as error:
         # Do not print urllib exceptions or raw provider messages: URLs may contain keys.
         code=str(error) if isinstance(error,ValueError) and re.fullmatch('[A-Z_]+',str(error)) else 'SOURCE_UNAVAILABLE'
         write_json(output/'collection-status.json',{'lastAttemptAt':now,'lastSuccessAt':prev.get('generatedAt') if prev else None,'outcome':'failure','code':code})
+        record_attempt(output,now,started_clock,'failure',source,prev,code=code)
         print(json.dumps({'status':'failure','code':code,'previousSnapshotPreserved':bool(prev)}),file=sys.stderr)
         return 1
 

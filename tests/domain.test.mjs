@@ -4,12 +4,16 @@ import {statusOf,queryStations,distanceKm,todayHours,fittedView} from '../public
 import {buildMarkerModels,markerHtml,createViewportGate} from '../public/js/map.js';
 const now=Date.parse('2026-10-21T01:00:00Z');
 const fixture={id:'001HSABC',name:'가 충전소',address:'충남 서산',region:'충남',lat:36.8,lng:126.4,vehicles:['car'],pricePerKg:9900,statusLabel:'여유',operationCode:'0',waitingTotal:0,observedAt:'2026-10-21T00:59:00Z',upstreamCheckedAt:'2026-10-21T00:58:00Z'};
-test('zero waiting cars is known; missing, stale, future timestamps cannot confirm open',()=>{
-  assert.equal(statusOf(fixture,now).queue,0);assert.equal(statusOf(fixture,now).open,true);
+test('equipment dates are not status heartbeat; collection age controls open and queue',()=>{
   for(const upstreamCheckedAt of [null,'2026-10-20T00:00:00Z','2026-10-21T02:00:00Z']){
-    const s=statusOf({...fixture,upstreamCheckedAt},now);assert.equal(s.open,false);assert.equal(s.queue,null);assert.equal(s.tone,'unknown');
+    const s=statusOf({...fixture,upstreamCheckedAt},now);
+    assert.equal(s.open,true);assert.equal(s.queue,0);assert.equal(s.tone,'available');
   }
-  assert.equal(statusOf({...fixture,observedAt:'2026-10-20T00:00:00Z'},now).open,false);
+  for(const observedAt of [null,'2026-10-20T00:00:00Z','2026-10-21T02:00:00Z']){
+    const s=statusOf({...fixture,observedAt},now);
+    assert.equal(s.open,false);assert.equal(s.queue,null);assert.match(s.label,/최근 여유.*갱신 지연/);
+  }
+  assert.equal(statusOf({...fixture,statusLabel:'상태 미확인'},now).tone,'unknown');
 });
 test('maintenance, closed and TT replacement override queue and general open status',()=>{
   for(const operationCode of ['1','2','3','9'])assert.equal(statusOf({...fixture,operationCode},now).open,false);

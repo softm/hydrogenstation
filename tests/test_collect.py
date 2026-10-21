@@ -64,4 +64,21 @@ class CollectorTests(unittest.TestCase):
             self.assertEqual(attempt['lastSuccessAt'],NOW)
             self.assertNotIn('PRIVATE_SECRET',json.dumps(attempt))
 
+class HistoryTests(unittest.TestCase):
+    def test_history_preserves_failure_success_time_and_bounds_public_records(self):
+        import time
+        with tempfile.TemporaryDirectory() as d:
+            output=pathlib.Path(d)
+            c.write_json(output/'collection-history.json',[{'outcome':'success'}]*500)
+            previous={'generatedAt':NOW,'totalStations':248}
+            with patch.dict('os.environ',{'GITHUB_RUN_ID':'123','GITHUB_EVENT_NAME':'schedule'}):
+                entry=c.record_attempt(output,NOW,time.monotonic(),'failure','public-map',previous,code='SOURCE_UNAVAILABLE')
+            history=json.loads((output/'collection-history.json').read_text())
+            self.assertEqual(len(history),500)
+            self.assertEqual(history[-1]['lastSuccessAt'],NOW)
+            self.assertIsNone(entry['count'])
+            self.assertEqual(entry['code'],'SOURCE_UNAVAILABLE')
+            self.assertEqual(entry['runUrl'],'https://github.com/softm/hydrogenstation/actions/runs/123')
+            self.assertGreaterEqual(entry['durationSeconds'],0)
+
 if __name__=='__main__':unittest.main()

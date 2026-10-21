@@ -13,3 +13,7 @@
 - Pages Source는 GitHub Actions, collect-and-deploy.yml 하나가 배포한다. dist는 산출물이며 운영 URL은 루트다.
 - 인증키는 HYDROGEN_SERVICE_KEY Actions Secret으로만 관리하고 브라우저에는 공개 지도 ID와 데이터 URL만 둔다.
 - npm run check, npm test, npm run build를 실행하고 적절한 브라우저 검증을 한다.
+
+## 공통 수집현황 기준 (사용자 요청, 2026-10-21)
+- 데이터 수집 서비스의 data-status.html에 수집 주기·예약 방식·활성 여부, 마지막 시도·성공·완료 시각(KST 초 단위), 경과 시간·소요 시간, 수집처·건수·증감, 실패 사유·연속 실패, 배포 시각과 실행 링크를 표시한다.
+- 성공/실패 실행 이력을 실제 실행마다 누적 보관한다. 과거 이력을 임의 생성하지 않는다. 수집 성공과 배포 성공을 구분하고 비밀키·원본 오류·개인정보는 공개 기록에 남기지 않는다.

@@ -8,18 +8,20 @@ export function ageSeconds(value, now = Date.now()) {
   return Number.isFinite(date) ? (now - date) / 1000 : Infinity;
 }
 export function statusOf(station, now = Date.now(), threshold = 900) {
-  const sampleAge = ageSeconds(station.observedAt,now), upstreamAge = ageSeconds(station.upstreamCheckedAt,now);
-  const fresh = sampleAge >= -120 && sampleAge <= threshold && upstreamAge >= -120 && upstreamAge <= threshold;
+  // Equipment modification is not a status heartbeat. Fresh means recently collected, not independently verified live.
+  const sampleAge = ageSeconds(station.observedAt,now);
+  const fresh = sampleAge >= -120 && sampleAge <= threshold;
   const label = station.statusLabel || '상태 미확인';
   const closed = /마감|휴무|점검|교체|고장|중지|정지/.test(label) || ['1','2','3','9'].includes(station.operationCode);
   let knownLabel = label;
   if (station.operationCode === '2') knownLabel = '설비점검';
   else if (station.operationCode === '3') knownLabel = 'T/T교체';
   else if (station.operationCode === '1') knownLabel = '영업중지';
-  const open = fresh && !closed && /여유|보통|혼잡|영업중/.test(label);
+  const reportedOpen = !closed && /여유|보통|혼잡|영업중/.test(label);
+  const open = fresh && reportedOpen;
   const queue = open && Number.isInteger(station.waitingTotal) && station.waitingTotal >= 0 ? station.waitingTotal : null;
-  const tone = !fresh ? 'unknown' : closed ? 'unavailable' : open ? (/혼잡/.test(label) ? 'busy' : /보통/.test(label) ? 'moderate' : 'available') : 'unknown';
-  return {fresh, open, queue, tone, label:fresh ? knownLabel : '확인 지연', previousLabel:knownLabel};
+  const tone = closed ? 'unavailable' : reportedOpen ? (/혼잡/.test(label) ? 'busy' : /보통/.test(label) ? 'moderate' : 'available') : 'unknown';
+  return {fresh, open, queue, tone, label:fresh ? knownLabel : `최근 ${knownLabel} · 갱신 지연`, previousLabel:knownLabel};
 }
 export function distanceKm(a,b) {
   if (![a?.lat,a?.lng,b?.lat,b?.lng].every(finiteValue)) return null;
