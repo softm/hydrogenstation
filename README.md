@@ -1,8 +1,8 @@
 # 수소한눈 · hydrogenstation
 
-[배포 예정 주소](https://softm.github.io/hydrogenstation/) · [수집현황 예정 주소](https://softm.github.io/hydrogenstation/data-status.html) · [수집·배포 실행](https://github.com/softm/hydrogenstation/actions)
+[수소한눈 서비스](https://softm.github.io/hydrogenstation/) · [수집현황](https://softm.github.io/hydrogenstation/data-status.html) · [수집·배포 실행](https://github.com/softm/hydrogenstation/actions)
 
-**2026-10-21 검증 상태:** 앱 구현과 실제 248곳 수집·자동화 테스트·빌드는 통과했다. 첫 GitHub Actions에서도 수집·테스트·빌드에 성공했고, Pages 미활성화로 공개 배포 단계가 중단되었다. [Pages 설정](https://github.com/softm/hydrogenstation/settings/pages)의 Source를 **GitHub Actions**로 선택하면 이후 예약 실행에서 배포한다. [검증 결과](docs/VALIDATION.md)를 참고한다.
+**2026-10-21 검증 상태:** 공개 배포 완료. Pages Source를 **GitHub Actions**로 설정했고, 실제 248곳 수집·14개 테스트·빌드·배포·운영 URL 검증이 통과했다. 공개 HTTPS 화면에서 지도·충남 15곳 검색·가격 정렬·상세정보·모바일 레이아웃·수집현황의 gzip/SHA-256 검증을 확인했다. 15분 간격 예약 수집을 구성했으며 GitHub 실행 지연은 별도로 표시한다. [검증 결과](docs/VALIDATION.md)를 참고한다.
 
 수소차 충전소를 지도에서 찾고 **원/kg 가격, 승용·버스·트럭 이용 가능 차종, 설비 표기 압력, 운영시간과 대기 현황**을 비교하는 웹앱이다. 사용자 소유 [전기차 충전소 앱](https://github.com/softm/evchargingstation)을 기반으로 별도 저장소에 구현했다. 외부 의존성 설치 없이 빌드·테스트·수집이 가능하다.
 
