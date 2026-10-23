@@ -114,7 +114,7 @@ async function locate({quiet=false}={}){
   navigator.geolocation.getCurrentPosition(position=>{
     state.origin={lat:position.coords.latitude,lng:position.coords.longitude};
     filters.viewport=true;filters.region='';$('region').value='';filters.sort='distance';$('sort').value='distance';
-    state.map?.locate(state.origin);state.map?.setCenter(state.origin,10);render();
+    state.map?.locate(state.origin);state.map?.setCenter(state.origin,mobileMapFocus?.isMobile()?11:10);render();
     $('locate').disabled=false;$('locate').textContent='◎ 내 위치';
   },()=>{$('locate').disabled=false;$('locate').textContent='◎ 내 위치';if(!quiet)toast('위치를 확인하지 못했습니다. 브라우저 위치 권한을 허용하거나 지역을 선택해 주세요.');},{enableHighAccuracy:false,timeout:8000,maximumAge:60000});
 }
