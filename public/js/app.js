@@ -97,7 +97,9 @@ function nation({reset=false}={}){
   filters.viewport=false;state.bounds=null;
   state.selected=null;$('detail').hidden=true;
   const view=fittedView(state.stations,$('map').clientWidth,$('map').clientHeight);
-  state.map?.setCenter(view?.center||{lat:36.1,lng:127.75},view?.zoom||6);render({preserveScroll:false});
+  const baseZoom=view?.zoom||6;
+  const initialZoom=mobileMapFocus?.isMobile()?Math.min(19,baseZoom+1):baseZoom;
+  state.map?.setCenter(view?.center||{lat:36.1,lng:127.75},initialZoom);render({preserveScroll:false});
 }
 function search({move=false}={}){
   filters.keyword=$('keyword').value;filters.region=$('region').value;filters.vehicle=$('vehicle').value;
