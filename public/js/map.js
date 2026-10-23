@@ -248,7 +248,7 @@ function installStyles() {
 }
 
 function leafletEngine(L, canvas, { userChange, settled, select, background, tileFailure, tileSuccess }) {
-  const map = L.map(canvas, { center: [INITIAL_CENTER.lat, INITIAL_CENTER.lng], zoom: 12, minZoom: 5, maxZoom: 19,
+  const map = L.map(canvas, { center: [INITIAL_CENTER.lat, INITIAL_CENTER.lng], zoom: 11, minZoom: 5, maxZoom: 19,
     zoomControl: false, attributionControl: true, scrollWheelZoom: true, touchZoom: true, keyboard: true,
     maxBounds: [[31.5, 122], [41, 135]], maxBoundsViscosity: 0.8 });
   const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19,
@@ -280,7 +280,7 @@ function leafletEngine(L, canvas, { userChange, settled, select, background, til
 }
 
 function naverEngine(N, canvas, { userChange, settled, select, background }) {
-  const map = new N.Map(canvas, { center: new N.LatLng(INITIAL_CENTER.lat, INITIAL_CENTER.lng), zoom: 12, minZoom: 5, maxZoom: 19,
+  const map = new N.Map(canvas, { center: new N.LatLng(INITIAL_CENTER.lat, INITIAL_CENTER.lng), zoom: 11, minZoom: 5, maxZoom: 19,
     zoomControl: false, mapTypeControl: false, scaleControl: true, logoControl: true, mapDataControl: true,
     scrollWheel: true, pinchZoom: true, draggable: true, keyboardShortcuts: true });
   const listeners = [];
@@ -338,7 +338,7 @@ export async function createMap({ container, config = {}, onSelect = () => {}, o
   let rows = [];
   let selection = null;
   let summaries = new Map();
-  let requestedView = { point: INITIAL_CENTER, zoom: 12 };
+  let requestedView = { point: INITIAL_CENTER, zoom: 11 };
   let locationPoint = null;
   let locationMarker = null;
   let boundsTimer = 0;
