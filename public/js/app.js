@@ -193,6 +193,7 @@ try{
     onRequestClose:()=>closeDetail({restoreFocus:true})
   });
   $('map-type-toggle').hidden=!state.map?.supportsMapType?.();
+  $('mobile-map-layer').hidden=!state.map?.supportsMapType?.();
   const shared=params.get('station');
   if(shared){const s=state.stations.find(row=>row.id===shared);if(s){filters.vehicle='';$('vehicle').value='';selectStation(shared,{scroll:false,focus:!sharedView});}else toast('공유된 충전소를 현재 수집 목록에서 찾지 못했습니다.');}
   if(sharedView)state.map.setCenter(sharedView.center,sharedView.zoom);
