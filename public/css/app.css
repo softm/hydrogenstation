@@ -55,7 +55,7 @@
   body.h2-map-expanded-tools .search-controls .filter-row{margin-top:7px}
   body.h2-map-expanded-tools .search-controls .quick-filters{margin-top:7px}
   body.h2-map-expanded-tools .map-search{display:block!important;top:calc(208px + env(safe-area-inset-top,0px));left:50%;right:auto;transform:translateX(-50%);z-index:1160}
-  body.h2-map-expanded-tools #map-type-toggle{display:inline-flex!important}
+  body.h2-map-expanded-tools #map-type-toggle:not([hidden]){display:inline-flex!important}
   body.h2-map-expanded-tools .map-top{z-index:1190}
   body.h2-map-expanded-tools .ev-map-tools{top:calc(208px + env(safe-area-inset-top,0px))}
   body.h2-map-expanded-tools .ev-map-provider-note{display:none}
