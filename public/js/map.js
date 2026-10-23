@@ -218,7 +218,8 @@ function installStyles() {
     .ev-map-pin:after{content:"";position:absolute;bottom:-6px;left:calc(50% - 5px);width:8px;height:8px;background:inherit;border-right:2px solid white;border-bottom:2px solid white;transform:rotate(45deg)}
     .ev-map-pin--available{background:#13a67c}.ev-map-pin--charging{background:#5982fc}.ev-map-pin--unavailable{background:#f15c5c}.ev-map-pin--unknown{background:#f4a22a}.ev-map-pin--restricted{background:#757e90}
     .ev-map-pin-number{display:none}
-    .ev-map-pin-count{font-size:12px;letter-spacing:-.2px}.ev-map-pin.is-selected{outline:3px solid #164937;outline-offset:2px;box-shadow:0 0 0 7px #ffffffc9,0 5px 16px #163f3040}
+    .ev-map-pin-count{font-size:12px;letter-spacing:-.2px}.ev-map-pin.is-selected{outline:3px solid #164937;outline-offset:2px;box-shadow:0 0 0 7px #ffffffc9,0 5px 16px #163f3040;animation:ev-map-selected-bounce .58s cubic-bezier(.2,.75,.28,1.25)}
+    @keyframes ev-map-selected-bounce{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-13px) scale(1.08)}62%{transform:translateY(0) scale(1)}82%{transform:translateY(-5px) scale(1.03)}100%{transform:translateY(0) scale(1)}}
     .ev-map-pin-label{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);max-width:220px;padding:6px 9px;overflow:hidden;text-overflow:ellipsis;border:1px solid #dce7e1;border-radius:8px;background:#fffffff5;color:#1b3b2c;font:600 12px/1.35 system-ui,sans-serif;box-shadow:0 2px 8px #153e2814;pointer-events:none}
     .ev-map-host[data-marker-scale="dot"] .ev-map-pin:not(.is-selected){width:15px;min-width:15px;height:15px;min-height:15px;padding:0;gap:0;border-width:2px;border-radius:50%}
     .ev-map-host[data-marker-scale="dot"] .ev-map-pin:not(.is-selected)::after{display:none}
@@ -231,7 +232,7 @@ function installStyles() {
     .ev-map-failure{position:absolute;inset:0;display:grid;place-content:center;gap:10px;padding:24px;text-align:center;color:#324c40;font:500 14px/1.6 system-ui;background:#f2f6f3}
     .ev-map-host .leaflet-control-attribution{max-width:100%;font-size:10px}.ev-map-host .leaflet-control-scale-line{font-size:10px}
     @media(max-width:760px){.ev-map-host{--ev-map-controls-top:64px}}
-    @media(prefers-reduced-motion:reduce){.ev-map-host *{scroll-behavior:auto!important}}
+    @media(prefers-reduced-motion:reduce){.ev-map-host *{scroll-behavior:auto!important}.ev-map-pin.is-selected{animation:none!important}}
   `;
   document.head.append(style);
 }
@@ -248,6 +249,9 @@ function leafletEngine(L, canvas, { userChange, settled, select, background, til
   const icon = model => L.divIcon({ html: markerHtml(model), className: 'ev-leaflet-icon', iconSize: [64, 44], iconAnchor: [32, 44] });
   return {
     provider: 'leaflet',
+    supportsMapType() { return false; },
+    getMapType() { return 'normal'; },
+    setMapType() { return false; },
     getBounds() { const box = map.getBounds(); return normalizeBounds({ south: box.getSouth(), north: box.getNorth(), west: box.getWest(), east: box.getEast() }); },
     getCenter() { const point = map.getCenter(); return { lat: point.lat, lng: point.lng }; },
     getZoom() { return map.getZoom(); },
@@ -272,8 +276,12 @@ function naverEngine(N, canvas, { userChange, settled, select, background }) {
   for (const event of ['dragend', 'idle', 'zoom_changed']) bind(map, event, settled);
   bind(map, 'click', background);
   const icon = model => ({ content: markerHtml(model), size: new N.Size(64, 44), anchor: new N.Point(32, 44) });
+  let mapType = 'normal';
   return {
     provider: 'naver',
+    supportsMapType() { return true; },
+    getMapType() { return mapType; },
+    setMapType(type) { const next = type === 'satellite' ? 'satellite' : 'normal'; map.setMapTypeId(next === 'satellite' ? N.MapTypeId.SATELLITE : N.MapTypeId.NORMAL); mapType = next; return true; },
     getBounds() { const box = map.getBounds(); const sw = box.getSW(); const ne = box.getNE(); return normalizeBounds({ south: sw.lat(), north: ne.lat(), west: sw.lng(), east: ne.lng() }); },
     getCenter() { const point = map.getCenter(); return { lat: point.lat(), lng: point.lng() }; },
     getZoom() { return map.getZoom(); },
@@ -523,6 +531,10 @@ export async function createMap({ container, config = {}, onSelect = () => {}, o
     getBounds() { return engine?.getBounds() || null; },
     getCenter() { return engine?.getCenter() || { ...requestedView.point }; },
     getZoom() { return engine?.getZoom() ?? requestedView.zoom; }, // SOFTM-EV-SHARE-ZOOM 날짜:20261019 : 공유 링크가 현재 지도 배율을 그대로 복원하도록 공개 인터페이스에 전달
+    getProvider() { return engine?.provider || null; },
+    supportsMapType() { return Boolean(engine?.supportsMapType?.()); },
+    getMapType() { return engine?.getMapType?.() || 'normal'; },
+    setMapType(type) { const changed = engine?.setMapType?.(type) || false; if (changed) { requestedView = { point: engine.getCenter(), zoom: engine.getZoom() }; draw(); queueLabels(); } return changed; },
     setCenter(point, zoom) {
       if (!isCoordinate(point) || destroyed) return false;
       userChange('programmatic');
