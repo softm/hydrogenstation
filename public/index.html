@@ -29,12 +29,12 @@
       <div id="list" class="station-list" tabindex="-1" aria-label="충전소 목록" aria-busy="true"><div class="empty"><div class="empty-symbol">H₂</div><h2>충전소를 찾고 있어요</h2><p>수집된 공식 정보를 확인하고 있습니다.</p></div></div>
       <footer class="sidebar-footer"><span id="collected-at">수집 시각 확인 중</span><button id="refresh" class="text-btn">새로고침</button><a href="./privacy.html">개인정보</a></footer>
     </aside>
-    <section class="map-section" aria-label="수소충전소 지도">
+    <section id="map-section" class="map-section" aria-label="수소충전소 지도" tabindex="-1">
       <div id="map" class="map"></div>
-      <div class="map-top" data-map-obstacle><button id="nation" class="map-action">전국 보기</button><button id="locate" class="map-action">◎ 내 위치</button><button id="view-toggle" class="map-action mobile-only" aria-pressed="false">목록 크게</button></div>
+      <div class="map-top" data-map-obstacle><button id="nation" class="map-action">전국 보기</button><button id="locate" class="map-action">◎ 내 위치</button><button id="map-type-toggle" class="map-action" aria-pressed="false" hidden>위성 지도</button><button id="view-toggle" class="map-action mobile-only" aria-pressed="false">목록 크게</button></div>
       <div class="map-search" data-map-obstacle><button id="search-area">↻ 이 지역 검색</button><label><input id="auto-search" type="checkbox" checked> 지도 이동 시 자동검색</label></div>
       <div class="map-legend" data-map-obstacle><span><i class="dot available"></i>여유·영업</span><span><i class="dot busy"></i>혼잡</span><span><i class="dot unavailable"></i>마감·점검</span><span><i class="dot unknown"></i>확인 지연</span></div>
-      <section id="detail" class="detail" aria-label="충전소 상세정보" hidden data-map-obstacle></section>
+      <nav id="mobile-focus-dock" class="mobile-focus-dock" aria-label="지도 집중모드" hidden><button type="button" id="focus-dock-detail">상세</button><button type="button" id="focus-dock-tools">검색·필터</button></nav><section id="detail" class="detail" aria-label="충전소 상세정보" hidden data-map-obstacle><div class="mobile-detail-sheet-head"><button type="button" id="detail-sheet-handle" class="detail-sheet-handle" aria-label="상세 패널 크기 조절"></button><strong>충전소 상세</strong><button type="button" id="detail-expand-toggle" aria-expanded="false">확장</button><button type="button" id="detail-full-map" aria-pressed="false">전체지도</button><button type="button" class="mobile-detail-close" data-action="close" aria-label="상세정보 닫기">×</button></div><div id="detail-content"></div></section>
     </section>
   </main>
   <div id="toast" class="toast" role="status" hidden></div>
