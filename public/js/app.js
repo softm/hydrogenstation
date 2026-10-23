@@ -32,6 +32,8 @@ function render({preserveScroll=true}={}){
   const top=$('list').scrollTop;
   state.rows=queryStations(state.stations,filters,{bounds:state.bounds,origin:state.origin||state.map?.getCenter(),favorites});
   $('result-count').textContent=state.rows.length.toLocaleString('ko-KR');
+  if($('focus-list-count'))$('focus-list-count').textContent=state.rows.length.toLocaleString('ko-KR');
+  if($('focus-favorite-count'))$('focus-favorite-count').textContent=favorites.size.toLocaleString('ko-KR');
   $('scope-label').textContent=filters.viewport?'현재 지도 안':filters.region||'전국 조회';
   $('list').setAttribute('aria-busy','false');
   if (state.rows.length) {
@@ -75,9 +77,12 @@ function selectStation(id,{focus=true,scroll=true}={}){
   if(scroll&&!mobileMapFocus?.isActive())$('list').querySelector(`[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({block:'nearest'});
   history.replaceState(null,'',viewUrl(s));
 }
-function closeDetail({restoreFocus=false}={}){
+function closeDetail({restoreFocus=false,leaveMap=false}={}){
   state.selected=null;$('detail').hidden=true;
-  if(mobileMapFocus?.isActive())mobileMapFocus.exit({restoreFocus});
+  if(mobileMapFocus?.isActive()){
+    if(leaveMap)mobileMapFocus.exit({restoreFocus});
+    else mobileMapFocus.enterFullMap();
+  }
   render();
   const u=new URL(location.href);u.searchParams.delete('station');history.replaceState(null,'',u);
   if(restoreFocus&&!mobileMapFocus?.isActive()&&focusBeforeDetail?.isConnected)focusBeforeDetail.focus({preventScroll:true});
@@ -131,9 +136,19 @@ $('more-filters').addEventListener('click',()=>{const expanded=$('more-filters')
 $('reset').addEventListener('click',()=>nation({reset:true}));$('nation').addEventListener('click',()=>{filters.region='';$('region').value='';nation();});
 $('locate').addEventListener('click',()=>locate());$('refresh').addEventListener('click',()=>refresh());
 $('map-type-toggle').addEventListener('click',()=>{if(!state.map?.supportsMapType?.())return;const next=state.map.getMapType?.()==='satellite'?'normal':'satellite';if(state.map.setMapType?.(next)){const satellite=next==='satellite';$('map-type-toggle').setAttribute('aria-pressed',String(satellite));$('map-type-toggle').textContent=satellite?'일반 지도':'위성 지도';}});
+$('mobile-map-layer').addEventListener('click',()=>$('map-type-toggle').click());
+$('mobile-map-restore').addEventListener('click',()=>mobileMapFocus?.exit({restoreFocus:false}));
+$('mobile-map-share').addEventListener('click',async()=>{
+  const station=state.stations.find(s=>s.id===state.selected);
+  const url=viewUrl(station);
+  try{if(navigator.share)await navigator.share({title:station?station.name+' · 수소한눈':'수소한눈 지도',url});else{await navigator.clipboard.writeText(url);toast('현재 지도 링크를 복사했습니다.');}}catch(error){if(error.name!=='AbortError')toast('주소창의 링크를 복사해 공유해 주세요.');}
+});
 $('search-area').addEventListener('click',()=>{state.bounds=state.map?.getBounds();filters.viewport=true;render({preserveScroll:false});if(!state.rows.length)toast('현재 지도 안에 표시할 충전소가 없습니다.');});
 $('auto-search').addEventListener('change',()=>{if($('auto-search').checked){state.bounds=state.map?.getBounds();filters.viewport=true;render({preserveScroll:false});}});
-$('view-toggle').addEventListener('click',()=>{const expanded=document.body.classList.toggle('list-expanded');$('view-toggle').setAttribute('aria-pressed',String(expanded));$('view-toggle').textContent=expanded?'지도 크게':'목록 크게';setTimeout(()=>state.map?.resize(),50);});
+$('view-toggle').addEventListener('click',()=>{
+  if(mobileMapFocus?.isMobile()){mobileMapFocus.enterFullMap();return;}
+  const expanded=document.body.classList.toggle('list-expanded');$('view-toggle').setAttribute('aria-pressed',String(expanded));$('view-toggle').textContent=expanded?'지도 크게':'목록 크게';setTimeout(()=>state.map?.resize(),50);
+});
 $('list').addEventListener('click',event=>{
   const favorite=event.target.closest('[data-favorite]');if(favorite){const id=favorite.dataset.favorite;favorites.has(id)?favorites.delete(id):favorites.add(id);saveFavorites();render();return;}
   const selected=event.target.closest('[data-select]');if(selected){selectStation(selected.dataset.select);return;}
@@ -166,13 +181,19 @@ try{
     expandButton:$('detail-expand-toggle'),
     fullMapButton:$('detail-full-map'),
     dock:$('mobile-focus-dock'),
-    dockDetail:$('focus-dock-detail'),
-    dockTools:$('focus-dock-tools'),
+    dockList:$('focus-dock-list'),
+    dockFavorites:$('focus-dock-favorites'),
+    dockMore:$('focus-dock-more'),
     onResize:()=>state.map?.resize(),
-    onModeChange:()=>{const selected=state.stations.find(row=>row.id===state.selected);if(selected)state.map?.focus(selected,{zoom:Math.max(12,state.map.getZoom())});},
+    onModeChange:(mode)=>{
+      if(mode==='open-list'){mobileMapFocus.exit({restoreFocus:false});requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
+      if(mode==='open-favorites'){filters.favorite=true;$('favorites-only').checked=true;render({preserveScroll:false});mobileMapFocus.exit({restoreFocus:false});requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
+      const selected=state.stations.find(row=>row.id===state.selected);if(selected)state.map?.focus(selected,{zoom:Math.max(12,state.map.getZoom())});
+    },
     onRequestClose:()=>closeDetail({restoreFocus:true})
   });
   $('map-type-toggle').hidden=!state.map?.supportsMapType?.();
+  $('mobile-map-layer').hidden=!state.map?.supportsMapType?.();
   const shared=params.get('station');
   if(shared){const s=state.stations.find(row=>row.id===shared);if(s){filters.vehicle='';$('vehicle').value='';selectStation(shared,{scroll:false,focus:!sharedView});}else toast('공유된 충전소를 현재 수집 목록에서 찾지 못했습니다.');}
   if(sharedView)state.map.setCenter(sharedView.center,sharedView.zoom);
