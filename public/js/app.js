@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id);
 const config=window.H2_CONFIG||{};
 const params=new URLSearchParams(location.search);
 const sharedView=parseSharedView(params);
-const state={stations:[],manifest:null,collection:null,rows:[],selected:null,map:null,bounds:null,origin:null,busy:false};
+const state={stations:[],manifest:null,collection:null,rows:[],selected:null,map:null,bounds:null,origin:null,busy:false,priceRanks:new Map()};
 const filters={keyword:params.get('q')||'',region:params.get('region')||'',vehicle:'car',pressure:'',maxPrice:'',open:false,favorite:false,viewport:false,sort:'name'};
 let favorites=new Set();
 try { const saved=JSON.parse(localStorage.getItem('h2-favorites-v1')||'[]');if(Array.isArray(saved)) favorites=new Set(saved.filter(x=>typeof x==='string')); } catch {}
@@ -22,15 +22,20 @@ for (const region of REGION_ORDER) {const option=document.createElement('option'
 $('keyword').value=filters.keyword;
 if (REGION_ORDER.includes(filters.region)) $('region').value=filters.region;else filters.region='';
 
-function card(s){
-  const status=statusOf(s), km=state.origin?distanceKm(state.origin,s):null;
-  const queue=status.queue!==null?`대기 ${status.queue}대`:'대기 미확인';
-  return `<article class="station-card${state.selected===s.id?' selected':''}" data-id="${e(s.id)}"><button class="select-station" type="button" data-select="${e(s.id)}" aria-label="${e(s.name)} 상세정보" aria-pressed="${state.selected===s.id}"><div class="card-status"><span class="status-tag ${status.tone}"><i class="dot ${status.tone}"></i>${e(status.label)}</span><span>${e(s.vehicleLabel)}</span><span class="distance">${km!==null?`${km.toFixed(1)} km`:e(s.region)}</span></div><h2>${e(s.name)}</h2><p class="address">${e(s.address||'주소 미제공')}</p><div class="card-bottom"><div class="price${hasPrice(s)?'':' missing'}">${e(priceText(s))}${hasPrice(s)?'<small>원/kg</small>':''}</div><div class="card-facts">${e(queue)} · ${e(s.pressureLabel)}<br>${e(todayHours(s))}</div></div></button><button class="favorite-btn" type="button" data-favorite="${e(s.id)}" aria-label="${e(s.name)} 관심 충전소" aria-pressed="${favorites.has(s.id)}">${favorites.has(s.id)?'★':'☆'}</button></article>`;
+function topPriceRanks(rows){
+  const ranked=(Array.isArray(rows)?rows:[]).filter(hasPrice).slice().sort((a,b)=>a.pricePerKg-b.pricePerKg||a.name.localeCompare(b.name,'ko-KR')).slice(0,5);
+  return new Map(ranked.map((station,index)=>[String(station.id),index+1]));
 }
-function summaries(){return new Map(state.stations.map(s=>{const summary=statusOf(s);return [s.id,{tone:summary.tone,label:summary.label,price:s.pricePerKg}];}));}
+function card(s){
+  const status=statusOf(s), km=state.origin?distanceKm(state.origin,s):null, rank=state.priceRanks.get(String(s.id))||null;
+  const queue=status.queue!==null?`대기 ${status.queue}대`:'대기 미확인';
+  return `<article class="station-card${state.selected===s.id?' selected':''}${rank?' top-price-card':''}" data-id="${e(s.id)}"><button class="select-station" type="button" data-select="${e(s.id)}" aria-label="${e(s.name)} 상세정보" aria-pressed="${state.selected===s.id}"><div class="card-status">${rank?`<span class="top-price-rank">최저가 ${rank}위</span>`:''}<span class="status-tag ${status.tone}"><i class="dot ${status.tone}"></i>${e(status.label)}</span><span>${e(s.vehicleLabel)}</span><span class="distance">${km!==null?`${km.toFixed(1)} km`:e(s.region)}</span></div><h2>${e(s.name)}</h2><p class="address">${e(s.address||'주소 미제공')}</p><div class="card-bottom"><div class="price${hasPrice(s)?'':' missing'}">${e(priceText(s))}${hasPrice(s)?'<small>원/kg</small>':''}</div><div class="card-facts">${e(queue)} · ${e(s.pressureLabel)}<br>${e(todayHours(s))}</div></div></button><button class="favorite-btn" type="button" data-favorite="${e(s.id)}" aria-label="${e(s.name)} 관심 충전소" aria-pressed="${favorites.has(s.id)}">${favorites.has(s.id)?'★':'☆'}</button></article>`;
+}
+function summaries(){return new Map(state.stations.map(s=>{const summary=statusOf(s);return [s.id,{tone:summary.tone,label:summary.label,price:s.pricePerKg,topRank:state.priceRanks.get(String(s.id))||null}];}));}
 function render({preserveScroll=true}={}){
   const top=$('list').scrollTop;
   state.rows=queryStations(state.stations,filters,{bounds:state.bounds,origin:state.origin||state.map?.getCenter(),favorites});
+  state.priceRanks=topPriceRanks(state.rows);
   $('result-count').textContent=state.rows.length.toLocaleString('ko-KR');
   if($('focus-list-count'))$('focus-list-count').textContent=state.rows.length.toLocaleString('ko-KR');
   if($('focus-favorite-count'))$('focus-favorite-count').textContent=favorites.size.toLocaleString('ko-KR');
