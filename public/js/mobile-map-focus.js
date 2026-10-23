@@ -88,7 +88,7 @@ export function setupMobileMapFocus({
     body.classList.toggle('h2-map-expanded-tools', next === 'expanded-tools');
     body.classList.toggle('h2-map-full', next === 'full-map');
 
-    if (sidebar) sidebar.inert = active && next !== 'expanded-tools';
+    if (sidebar) sidebar.inert = active && !['expanded-tools','full-map'].includes(next);
     if (detail) {
       if (next === 'full-map') detail.hidden = true;
       else if (next === 'focus-detail' || next === 'expanded-tools') detail.hidden = false;
