@@ -98,7 +98,7 @@ function nation({reset=false}={}){
   state.selected=null;$('detail').hidden=true;
   const view=fittedView(state.stations,$('map').clientWidth,$('map').clientHeight);
   const baseZoom=view?.zoom||6;
-  const initialZoom=mobileMapFocus?.isMobile()?Math.min(19,baseZoom+1):baseZoom;
+  const initialZoom=mobileMapFocus?.isMobile()?Math.min(19,baseZoom+2):baseZoom;
   state.map?.setCenter(view?.center||{lat:36.1,lng:127.75},initialZoom);render({preserveScroll:false});
 }
 function search({move=false}={}){
