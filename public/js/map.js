@@ -256,7 +256,11 @@ function leafletEngine(L, canvas, { userChange, settled, select, background, til
   tiles.on('tileerror', tileFailure).on('tileload', tileSuccess);
   L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
   map.on('dragstart', userChange).on('dragend moveend zoomend', settled).on('click', background);
-  const icon = model => L.divIcon({ html: markerHtml(model), className: 'ev-leaflet-icon', iconSize: [64, 44], iconAnchor: [32, 44] });
+  const icon = model => {
+    const size = model.topRank || model.selected ? [96, 70] : [64, 44];
+    const anchor = model.topRank || model.selected ? [48, 58] : [32, 44];
+    return L.divIcon({ html: markerHtml(model), className: 'ev-leaflet-icon', iconSize: size, iconAnchor: anchor });
+  };
   return {
     provider: 'leaflet',
     supportsMapType() { return false; },
@@ -285,7 +289,11 @@ function naverEngine(N, canvas, { userChange, settled, select, background }) {
   bind(map, 'dragstart', userChange);
   for (const event of ['dragend', 'idle', 'zoom_changed']) bind(map, event, settled);
   bind(map, 'click', background);
-  const icon = model => ({ content: markerHtml(model), size: new N.Size(64, 44), anchor: new N.Point(32, 44) });
+  const icon = model => {
+    const size = model.topRank || model.selected ? new N.Size(96, 70) : new N.Size(64, 44);
+    const anchor = model.topRank || model.selected ? new N.Point(48, 58) : new N.Point(32, 44);
+    return { content: markerHtml(model), size, anchor };
+  };
   let mapType = 'normal';
   return {
     provider: 'naver',
