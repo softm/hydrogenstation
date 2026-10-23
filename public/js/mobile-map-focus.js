@@ -8,8 +8,9 @@ export function setupMobileMapFocus({
   expandButton,
   fullMapButton,
   dock,
-  dockDetail,
-  dockTools,
+  dockList,
+  dockFavorites,
+  dockMore,
   onResize = () => {},
   onModeChange = () => {},
   onRequestClose = () => {},
@@ -244,8 +245,9 @@ export function setupMobileMapFocus({
 
   expandButton?.addEventListener('click', toggleExpanded);
   fullMapButton?.addEventListener('click', () => mode === 'full-map' ? showDetail() : enterFullMap());
-  dockDetail?.addEventListener('click', showDetail);
-  dockTools?.addEventListener('click', () => setMode('expanded-tools'));
+  dockList?.addEventListener('click', () => { onModeChange('open-list'); });
+  dockFavorites?.addEventListener('click', () => { onModeChange('open-favorites'); });
+  dockMore?.addEventListener('click', () => setMode('expanded-tools'));
   detailHandle?.addEventListener('pointerdown', pointerDown);
   detailHandle?.addEventListener('click', handleClick);
   window.addEventListener('pointermove', pointerMove, { passive: false });
@@ -271,6 +273,9 @@ export function setupMobileMapFocus({
       body.classList.remove('h2-map-focus-mode', 'h2-map-focus-detail', 'h2-map-expanded-tools', 'h2-map-full');
       if (sidebar) sidebar.inert = false;
       expandButton?.removeEventListener('click', toggleExpanded);
+      dockList?.replaceWith(dockList.cloneNode(true));
+      dockFavorites?.replaceWith(dockFavorites.cloneNode(true));
+      dockMore?.replaceWith(dockMore.cloneNode(true));
       detailHandle?.removeEventListener('pointerdown', pointerDown);
       detailHandle?.removeEventListener('click', handleClick);
       window.removeEventListener('pointermove', pointerMove);
