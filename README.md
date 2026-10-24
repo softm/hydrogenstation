@@ -18,7 +18,7 @@
 | 데이터 | 한국석유관리원 하잉 공개 지도 응답의 허용 필드만 수집. 검증 후 원자적으로 manifest 교체 |
 | 압축·신뢰성 | 내용 기반 파일명, JSON+gzip, SHA-256, 실제 압축해제·건수·지역 집계 대조 |
 | 운영 | 필수 `data-status.html`, 15분 예약 수집, 실패 시 마지막 정상본 보존, 배포 성공과 수집 성공 분리 |
-| 광고 | 수소한눈 전용 AdFit 320×100 단위를 목록 6개 뒤와 충전소 상세 하단에 지연 요청. NOAD·폭 부족·Android 네이티브 광고 WebView에서는 빈 지면까지 제거 |
+| 광고 | 수소한눈 전용 AdFit 320×100 단위를 목록 6개 뒤, 충전소 상세 하단, 하단 접이식에 지연 요청. NOAD·폭 부족·Android 네이티브 광고 WebView에서는 빈 지면까지 제거 |
 
 ## 데이터 연결
 
@@ -51,7 +51,7 @@ python3 -m http.server 8080 --directory dist
 - 매시 7·22·37·52분 예약 실행. GitHub 정책에 따라 실행이 지연·누락될 수 있다. 앱은 5분마다 정적 배포본을 확인하며 상태의 신선도를 매분 재평가한다. 브라우저가 외부 데이터 API를 직접 호출하지 않는다.
 - 수동 복구: Actions → **Collect hydrogen stations and deploy Pages** → Run workflow. 일반 운영을 위해 사용자가 수동 실행할 필요는 없다.
 - 공공 API 전환: 두 서비스의 활용 승인을 받은 동일 공공데이터 키를 [Actions Secrets](https://github.com/softm/hydrogenstation/settings/secrets/actions)의 `HYDROGEN_SERVICE_KEY`에 등록. 키가 있으면 운영·실시간 API 두 요청을 사용하며, 승인/총계 검증 실패 시 공개 경로로 몰래 전환하지 않고 실패를 표시한다.
-- 공개 Variables: `PUBLIC_NAVER_MAP_CLIENT_ID`(선택 설정), `PUBLIC_ADFIT_LIST_UNIT`, `PUBLIC_ADFIT_DETAIL_UNIT`(수소한눈 전용 320×100 단위). 다른 앱의 광고 ID를 복제하지 않는다.
+- 공개 Variables: `PUBLIC_NAVER_MAP_CLIENT_ID`(선택 설정), `PUBLIC_ADFIT_LIST_UNIT`, `PUBLIC_ADFIT_DETAIL_UNIT`, `PUBLIC_ADFIT_BOTTOM_UNIT`(수소한눈 전용 320×100 단위). 다른 앱의 광고 ID를 복제하지 않는다.
 - 긴급 예약 일시중지: Variable `PAUSE_H2_COLLECTION=true`. push·수동 실행은 계속 가능.
 - 무료 공공 API의 실제 한도·이용 정책은 신청 계정의 승인 화면 기준으로 확인한다. 15분마다 두 API는 1일 192요청이며, push·수동 재실행은 별도다.
 
