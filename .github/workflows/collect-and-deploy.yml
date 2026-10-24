@@ -60,6 +60,7 @@ jobs:
           PUBLIC_NAVER_MAP_CLIENT_ID: ${{ vars.PUBLIC_NAVER_MAP_CLIENT_ID }}
           PUBLIC_ADFIT_LIST_UNIT: ${{ vars.PUBLIC_ADFIT_LIST_UNIT }}
           PUBLIC_ADFIT_DETAIL_UNIT: ${{ vars.PUBLIC_ADFIT_DETAIL_UNIT }}
+          PUBLIC_ADFIT_BOTTOM_UNIT: ${{ vars.PUBLIC_ADFIT_BOTTOM_UNIT }}
           SCHEDULED_COLLECTION_ENABLED: ${{ vars.PAUSE_H2_COLLECTION != 'true' }}
         run: npm run build
       - uses: actions/configure-pages@v6.0.0
