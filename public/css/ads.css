@@ -5,4 +5,12 @@
 .adfit-creative{width:320px;height:100px;margin-inline:auto;overflow:visible}
 .adfit-preview .adfit-creative{display:flex;align-items:center;justify-content:center;background:#f3f6f4;border:1px dashed #adbbb2;font-size:11px;color:#5b6f63}
 .adfit-banner--detail{margin:0;padding:15px 0 20px;border-top:1px solid var(--line);border-bottom:0}
+.ad-bottom{position:fixed;inset:auto 0 0;z-index:930;display:flex;align-items:center;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--line);box-shadow:0 -3px 14px #17362b14}
+.ad-bottom-toggle{min-width:108px;min-height:40px;padding:8px 16px;border:0;background:#fff;color:#52695b;font-size:12px}
+.ad-bottom-panel{width:100%;margin:0;padding:4px 0 12px;border:0}
+.ad-bottom-panel .adfit-label{margin-bottom:5px}
+body:not(.h2-map-focus-mode) .workspace{height:calc(100dvh - 80px - var(--h2-ad-space,0px))}
+body.h2-map-focus-mode .map-section{bottom:var(--h2-ad-space,0px)}
+body.h2-map-focus-mode .detail{bottom:calc(10px + var(--h2-ad-space,0px))}
 @media(max-width:335px){.adfit-banner{display:none}}
+@media(max-width:760px){body:not(.h2-map-focus-mode) .workspace{height:calc(100dvh - 62px - var(--h2-ad-space,0px))}.detail{bottom:calc(10px + var(--h2-ad-space,0px))}}
