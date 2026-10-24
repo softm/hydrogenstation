@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isAdMobNativeWebView,mountAdBanner,validAdPlacement} from '../public/js/ads.js';
+import {BOTTOM_AD_STORAGE_KEY,mountBottomAd} from '../public/js/ad-bottom.js';
 
 class Element {
-  constructor(width=320,height=100){this.children=[];this.dataset={};this.style={};this.hidden=true;this.width=width;this.height=height;this.attributes={};this.classList={add(){}};}
+  constructor(width=320,height=100){this.children=[];this.dataset={};this.style={setProperty:(name,value)=>{this.style[name]=value;}};this.hidden=true;this.width=width;this.height=height;this.attributes={};this.listeners=new Map();this.classList={add(){}};}
   append(...children){this.children.push(...children);}
   replaceChildren(...children){this.children=children;}
   setAttribute(name,value){this.attributes[name]=value;}
+  addEventListener(type,callback){this.listeners.set(type,callback);}
+  removeEventListener(type){this.listeners.delete(type);}
+  click(){this.listeners.get('click')?.();}
   getBoundingClientRect(){return {width:this.width,height:this.height};}
   querySelector(selector){if(selector==='iframe')return this.children.find(child=>child.tagName==='iframe')||null;return null;}
 }
@@ -61,4 +65,20 @@ test('NOAD 콜백은 해당 지면만 비우고 숨긴다',()=>{
   assert.equal(state.host.hidden,true);
   assert.equal(state.creative.children.length,0);
   assert.equal(state.host.dataset.adState,'unfilled');
+});
+
+test('하단 접이식은 기본 접힘이고 사용자가 펼칠 때 한 번만 요청한다',()=>{
+  const button=new Element(108,40),panel=new Element(320,132),creative=new Element(320,100),shell=new Element(320,40);
+  panel.querySelector=selector=>selector==='.adfit-creative'?creative:null;
+  shell.querySelector=selector=>selector==='.ad-bottom-toggle'?button:selector==='.ad-bottom-panel'?panel:null;
+  const stored=new Map(),doc={hidden:false,body:new Element(),createElement(tagName){const element=new Element();element.tagName=tagName;return element;},addEventListener(){}};
+  class IntersectionObserver {constructor(callback){this.callback=callback;}observe(){this.callback([{isIntersecting:true}]);}unobserve(){}disconnect(){}}
+  const win={navigator:{userAgent:'Browser/1'},location:{origin:'https://softm.github.io',pathname:'/hydrogenstation/'},IntersectionObserver,setTimeout(){return 1;},clearTimeout(){},sessionStorage:{getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value)}};
+  mountBottomAd({shell,config:{enabled:true,unit:'DAN-YJZxeizun0GjEKVU',width:320,height:100},win,doc});
+  assert.equal(shell.hidden,false);assert.equal(panel.hidden,true);assert.equal(creative.children.length,0);
+  button.click();
+  assert.equal(panel.hidden,false);assert.equal(button.attributes['aria-expanded'],'true');assert.equal(stored.get(BOTTOM_AD_STORAGE_KEY),'true');
+  assert.equal(creative.children.length,2);
+  button.click();button.click();
+  assert.equal(creative.children.length,2);
 });
