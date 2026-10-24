@@ -28,9 +28,11 @@ const ad={...context.window.H2_AD_CONFIG};
 ad.placements={...ad.placements};
 ad.placements.list={...ad.placements.list};
 ad.placements.detail={...ad.placements.detail};
+ad.placements.bottom={...ad.placements.bottom};
 if(process.env.PUBLIC_ADFIT_LIST_UNIT)ad.placements.list.unit=process.env.PUBLIC_ADFIT_LIST_UNIT;
 else if(process.env.PUBLIC_ADFIT_BANNER_UNIT)ad.placements.list.unit=process.env.PUBLIC_ADFIT_BANNER_UNIT;
 if(process.env.PUBLIC_ADFIT_DETAIL_UNIT)ad.placements.detail.unit=process.env.PUBLIC_ADFIT_DETAIL_UNIT;
+if(process.env.PUBLIC_ADFIT_BOTTOM_UNIT)ad.placements.bottom.unit=process.env.PUBLIC_ADFIT_BOTTOM_UNIT;
 for(const [name,placement] of Object.entries(ad.placements)){
  if(placement.unit&&!validAdUnit(placement.unit))throw new Error(`Invalid AdFit unit: ${name}`);
 }
