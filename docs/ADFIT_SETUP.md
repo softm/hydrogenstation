@@ -1,17 +1,19 @@
 # 수소한눈 카카오 AdFit 운영
 
-수소한눈 전용 Web 매체 `수소한눈`에서 발급한 320×100 광고 단위 두 개를 사용한다. 다른 서비스에서 이 ID를 재사용하지 않는다.
+수소한눈 전용 Web 매체 `수소한눈`에서 발급한 320×100 광고 단위 세 개를 사용한다. 다른 서비스에서 이 ID를 재사용하지 않는다.
 
 | 지면 | 광고 단위 | 노출 조건 |
 |---|---|---|
 | 목록 인피드 | `DAN-br2FK1ogdWkvz5PH` | 검색 결과가 7개 이상일 때 6번째 카드 뒤, 실제 화면에 가까워졌을 때 한 번 요청 |
 | 충전소 상세 하단 | `DAN-wBqWgG5o345q4Zn9` | 사용자가 충전소 상세를 실제로 연 뒤, 하단 지면이 화면에 가까워졌을 때 한 번 요청 |
+| 하단 접이식 | `DAN-YJZxeizun0GjEKVU` | 기본 접힘. 사용자가 펼친 뒤 한 번 요청하고 같은 세션에서 선택 상태 유지 |
 
-배포 빌드는 GitHub Actions Variables `PUBLIC_ADFIT_LIST_UNIT`, `PUBLIC_ADFIT_DETAIL_UNIT`으로 같은 값을 주입할 수 있다. 저장소의 `public/ad-config.js`는 로컬·비상 빌드에서도 지면 구성이 유지되도록 전용 공개 ID를 기록한다.
+배포 빌드는 GitHub Actions Variables `PUBLIC_ADFIT_LIST_UNIT`, `PUBLIC_ADFIT_DETAIL_UNIT`, `PUBLIC_ADFIT_BOTTOM_UNIT`으로 같은 값을 주입할 수 있다. 저장소의 `public/ad-config.js`는 로컬·비상 빌드에서도 지면 구성이 유지되도록 전용 공개 ID를 기록한다.
 
 ## 공통 동작
 
 - 광고는 각 지면에서 한 번만 요청하며 검색·정렬·지도 이동·상세 전환으로 자체 새로고침하지 않는다.
+- 하단 접이식 손잡이는 광고 영역 밖에 두고, 펼친 높이만큼 지도·상세 공간을 확보하며 접으면 광고 공간을 반환한다.
 - 컨테이너 폭이 320px보다 좁거나 광고 ID·규격이 잘못된 경우 요청하지 않고 지면을 숨긴다.
 - SDK 오류, NOAD 콜백, 30초 안에 광고 프레임이 생성되지 않는 경우 광고 DOM과 빈 공간을 제거한다.
 - `AdMobNative/1` User-Agent를 사용하는 Android WebView에서는 웹 AdFit 요청과 광고 컨테이너를 모두 차단한다.
