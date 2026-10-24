@@ -142,6 +142,13 @@ export function markerHtml(model) {
   return `<button type="button" class="ev-map-pin ev-map-pin--${model.tone}${model.topRank ? ' is-top-price rank-'+model.topRank : ''}${model.selected ? ' is-selected' : ''}" data-station-id="${escapeHtml(model.id)}" aria-label="${escapeHtml(description)}" aria-pressed="${model.selected}" title="${escapeHtml(description)}">${topBadge}<span class="ev-map-pin-count" aria-hidden="true">${escapeHtml(model.count)}</span><span class="ev-map-pin-unit" aria-hidden="true">${model.count === 'H₂' ? '' : '원/kg'}</span><span class="ev-map-pin-label" aria-hidden="true" hidden>${escapeHtml(model.station.name || '이름 미제공 충전소')}</span></button>`;
 }
 
+// SOFTM-H2-TOP-LAYER 20261024: TOP 가격 배지까지 일반 마커 위에 유지하고 선택 마커는 최상위로 둔다.
+export function markerZIndex(model, fallback = 0) {
+  if (model?.selected) return 5000;
+  if (model?.topRank) return 4000 + (6 - model.topRank);
+  return fallback;
+}
+
 function mapError(code, message, recoverable = true) {
   return Object.assign(new Error(message), { code, recoverable });
 }
@@ -270,8 +277,8 @@ function leafletEngine(L, canvas, { userChange, settled, select, background, til
     getCenter() { const point = map.getCenter(); return { lat: point.lat, lng: point.lng }; },
     getZoom() { return map.getZoom(); },
     setView(point, zoom) { map.stop(); map.setView([point.lat, point.lng], zoom, { animate: false }); },
-    add(model) { const marker = L.marker([model.station.lat, model.station.lng], { icon: icon(model), keyboard: false, bubblingMouseEvents: false, zIndexOffset: model.selected ? 5000 : 0 }).addTo(map); marker.on('click', event => { event.originalEvent?.stopPropagation?.(); select(model.id); }); return marker; },
-    update(marker, model) { marker.setLatLng([model.station.lat, model.station.lng]); marker.setIcon(icon(model)); marker.setZIndexOffset(model.selected ? 5000 : 0); },
+    add(model) { const marker = L.marker([model.station.lat, model.station.lng], { icon: icon(model), keyboard: false, bubblingMouseEvents: false, zIndexOffset: markerZIndex(model) }).addTo(map); marker.on('click', event => { event.originalEvent?.stopPropagation?.(); select(model.id); }); return marker; },
+    update(marker, model) { marker.setLatLng([model.station.lat, model.station.lng]); marker.setIcon(icon(model)); marker.setZIndexOffset(markerZIndex(model)); },
     remove(marker) { marker.remove(); },
     addLocation(point) { return L.marker([point.lat, point.lng], { icon: L.divIcon({ html: '<div class="ev-map-current"></div>', className: 'ev-leaflet-icon', iconSize: [18, 18], iconAnchor: [9, 9] }), interactive: false, keyboard: false, zIndexOffset: 6000 }).addTo(map); },
     resize() { const center = map.getCenter(), zoom = map.getZoom(); map.invalidateSize({ animate: false, pan: true, debounceMoveend: true }); map.setView(center, zoom, { animate: false }); },
@@ -304,8 +311,8 @@ function naverEngine(N, canvas, { userChange, settled, select, background }) {
     getCenter() { const point = map.getCenter(); return { lat: point.lat(), lng: point.lng() }; },
     getZoom() { return map.getZoom(); },
     setView(point, zoom) { map.stop(); map.updateBy(new N.LatLng(point.lat, point.lng), zoom); },
-    add(model) { const marker = new N.Marker({ map, position: new N.LatLng(model.station.lat, model.station.lng), title: `${model.number}. ${model.station.name}`, icon: icon(model), zIndex: model.selected ? 5000 : model.number }); N.Event.addListener(marker, 'click', () => select(model.id)); ownedMarkers.add(marker); return marker; },
-    update(marker, model) { marker.setPosition(new N.LatLng(model.station.lat, model.station.lng)); marker.setIcon(icon(model)); marker.setZIndex(model.selected ? 5000 : model.number); },
+    add(model) { const marker = new N.Marker({ map, position: new N.LatLng(model.station.lat, model.station.lng), title: `${model.number}. ${model.station.name}`, icon: icon(model), zIndex: markerZIndex(model, model.number) }); N.Event.addListener(marker, 'click', () => select(model.id)); ownedMarkers.add(marker); return marker; },
+    update(marker, model) { marker.setPosition(new N.LatLng(model.station.lat, model.station.lng)); marker.setIcon(icon(model)); marker.setZIndex(markerZIndex(model, model.number)); },
     remove(marker) { N.Event.clearInstanceListeners(marker); marker.setMap(null); ownedMarkers.delete(marker); },
     addLocation(point) { const marker = new N.Marker({ map, position: new N.LatLng(point.lat, point.lng), title: '내 위치', clickable: false, zIndex: 6000, icon: { content: '<div class="ev-map-current"></div>', size: new N.Size(18, 18), anchor: new N.Point(9, 9) } }); ownedMarkers.add(marker); return marker; },
     resize() { map.autoResize(); },

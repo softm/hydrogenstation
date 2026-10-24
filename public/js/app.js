@@ -15,8 +15,13 @@ try { const saved=JSON.parse(localStorage.getItem('h2-favorites-v1')||'[]');if(A
 let toastTimer,searchTimer,refreshTask,focusBeforeDetail,mobileMapFocus;
 function toast(message) {$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,4500);}
 function saveFavorites(){try{localStorage.setItem('h2-favorites-v1',JSON.stringify([...favorites]));}catch{toast('이 브라우저에서는 관심 충전소를 저장할 수 없습니다.');}}
-const adHost=document.createElement('section');adHost.className='list-adfit';adHost.hidden=true;adHost.setAttribute('aria-label','광고');adHost.innerHTML='<span class="adfit-label">광고</span><div class="adfit-creative"></div>';
-const ad=mountAdBanner({host:adHost,root:$('list'),config:window.H2_AD_CONFIG||{},preview:false});
+const adConfig=window.H2_AD_CONFIG||{};
+const placement=name=>({enabled:adConfig.enabled,script:adConfig.script,...(adConfig.placements?.[name]||{})});
+function createAdHost(modifier){const host=document.createElement('section');host.className=`adfit-banner ${modifier}`;host.hidden=true;host.setAttribute('aria-label','광고');host.innerHTML='<span class="adfit-label">광고</span><div class="adfit-creative"></div>';return host;}
+const listAdHost=createAdHost('adfit-banner--list');
+const listAd=mountAdBanner({host:listAdHost,root:$('list'),config:placement('list'),preview:false});
+const detailAdHost=createAdHost('adfit-banner--detail');
+const detailAd=mountAdBanner({host:detailAdHost,root:$('detail-content'),config:placement('detail'),preview:false});
 
 for (const region of REGION_ORDER) {const option=document.createElement('option');option.value=region;option.textContent=region;$('region').append(option);}
 $('keyword').value=filters.keyword;
@@ -43,8 +48,8 @@ function render({preserveScroll=true}={}){
   $('list').setAttribute('aria-busy','false');
   if (state.rows.length) {
     const fragment=document.createDocumentFragment();
-    state.rows.forEach((s,index)=>{const template=document.createElement('template');template.innerHTML=card(s);fragment.append(template.content);if(index===5) fragment.append(adHost);});
-    $('list').replaceChildren(fragment);ad.update(state.rows.length);
+    state.rows.forEach((s,index)=>{const template=document.createElement('template');template.innerHTML=card(s);fragment.append(template.content);if(index===5) fragment.append(listAdHost);});
+    $('list').replaceChildren(fragment);listAd.update(state.rows.length);
   } else {
     $('list').innerHTML='<div class="empty"><div class="empty-symbol">H₂</div><h2>조건에 맞는 충전소가 없어요</h2><p>지도를 넓히거나 검색 조건을 바꿔 보세요.\n상태가 오래된 곳은 ‘영업 확인’에서 제외됩니다.</p><button data-action="nation">전국 충전소 보기</button></div>';
   }
@@ -72,6 +77,7 @@ function detail(s){
   const queue=status.queue!==null?`${status.queue}대 (조회 ${formatTime(s.observedAt)} KST)`:'현재 대기차량 수 미확인';
   const waitingBreakdown=status.open&&(Number.isInteger(s.waitingCars)||Number.isInteger(s.waitingBuses))?`<br><small>승용 ${s.waitingCars??'미제공'} · 승용 외 ${s.waitingBuses??'미제공'}대</small>`:'';
   $('detail-content').innerHTML=`<div class="detail-head"><button class="detail-close" data-action="close" aria-label="상세정보 닫기">×</button><span class="status-tag ${status.tone}"><i class="dot ${status.tone}"></i>${e(status.label)}</span><h2>${e(s.name)}</h2><p class="address">${e(s.address||'주소 미제공')}</p><div class="detail-price"><span class="price${hasPrice(s)?'':' missing'}">${e(priceText(s))}${hasPrice(s)?'<small>원 / kg</small>':''}</span></div><p class="micro">가격 조회 ${formatTime(s.priceObservedAt)} KST · 현장 판매가격과 다를 수 있습니다.</p></div><div class="detail-content">${!status.fresh?`<div class="notice">수집이 지연되어 현재 상태는 확인이 필요합니다. 마지막 수집 상태: ${e(status.previousLabel)}. 방문 전 공식 정보나 전화로 확인해 주세요.</div>`:''}<dl><dt>이용 차종</dt><dd>${e(s.vehicleLabel)}${s.vehicles.length===1&&s.vehicles[0]==='bus'?'<br><strong>승용차 충전 불가 · 버스 전용</strong>':''}</dd><dt>대기 현황</dt><dd>${e(queue)}${waitingBreakdown}</dd><dt>오늘 운영</dt><dd>${e(todayHours(s))}<br><small>정기시간표 기준 · 공휴일·임시 변경은 공식 정보 확인</small></dd><dt>휴게 시간</dt><dd>${s.breakTime?.start&&s.breakTime?.end?`${e(s.breakTime.start)}–${e(s.breakTime.end)}`:'미제공'}</dd><dt>설비 표기</dt><dd>${e(s.pressureLabel)}<br><small>차량 충전압력과 동일하다고 단정할 수 없습니다.</small></dd><dt>시설 유형</dt><dd>${e([s.stationType,s.equipmentType].filter(Boolean).join(' · ')||'미제공')}</dd><dt>결제 방법</dt><dd>${e(s.payment||'미제공')}</dd><dt>충전소 전화</dt><dd>${phone?`<a href="tel:${e(phone)}">${e(s.phone)}</a>`:'미제공'}</dd><dt>설비 원천 갱신</dt><dd>${formatTime(s.upstreamCheckedAt)}${s.upstreamCheckedAt?' KST':''}</dd><dt>운영상태 변경</dt><dd>${formatTime(s.operationChangedAt)}${s.operationChangedAt?' KST':''}</dd><dt>수집 확인</dt><dd>${formatTime(s.observedAt)} KST</dd></dl>${s.notice?`<p class="notice">${e(s.notice)}</p>`:''}<details class="hours"><summary>요일별 운영시간</summary><table><tbody>${hours}</tbody></table></details><div class="detail-actions"><a class="primary" href="${e(naverNav)}" target="_blank" rel="noopener noreferrer">네이버 길찾기 ↗</a><a href="${e(kakaoSearch)}" target="_blank" rel="noopener noreferrer">카카오맵 ↗</a><button data-action="share">공유</button></div><p class="micro">출처: <a href="https://www.h2nbiz.or.kr/rt/sch/rtSearch.do?tabNo=1" target="_blank" rel="noopener noreferrer">한국석유관리원 하잉 ↗</a><br>상태·대기대수는 수집 시점의 원천 표기이며 현장 상황과 다를 수 있습니다. 대기시간·완충 가능 대수는 추정하지 않습니다.</p></div>`;
+  $('detail-content').append(detailAdHost);detailAd.update(true);
 }
 function selectStation(id,{focus=true,scroll=true}={}){
   const s=state.stations.find(row=>row.id===id);if(!s)return;
@@ -83,7 +89,7 @@ function selectStation(id,{focus=true,scroll=true}={}){
   history.replaceState(null,'',viewUrl(s));
 }
 function closeDetail({restoreFocus=false,leaveMap=false}={}){
-  state.selected=null;$('detail').hidden=true;
+  state.selected=null;$('detail').hidden=true;detailAd.update(false);
   if(mobileMapFocus?.isActive()){
     if(leaveMap)mobileMapFocus.exit({restoreFocus});
     else mobileMapFocus.enterFullMap();
