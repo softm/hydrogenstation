@@ -19,7 +19,7 @@ export function isAdMobNativeWebView(userAgent = '') {
 }
 
 export function mountAdBanner({ host, root, config = {}, preview = false, demo = false,
-  win = window, doc = document, location = win.location } = {}) {
+  win = window, doc = document, location = win.location, onStateChange = () => {} } = {}) {
   if (!host) return { update() {} };
   if (mounted.has(host)) return mounted.get(host);
   let active = false, requested = false, failed = false, observer, timer, ins;
@@ -31,7 +31,7 @@ export function mountAdBanner({ host, root, config = {}, preview = false, demo =
     && production && !demo && !nativeAdWebView;
   const callbackName = `h2AdFitNoAd${++callbackSequence}`;
   const creative = host.querySelector('.adfit-creative');
-  const setState = value => { host.dataset.adState = value; };
+  const setState = value => { host.dataset.adState = value; onStateChange(value); };
   const hide = () => { host.hidden = true; };
   hide();
   setState(preview ? 'preview' : nativeAdWebView ? 'native-ad-blocked'
@@ -77,6 +77,8 @@ export function mountAdBanner({ host, root, config = {}, preview = false, demo =
   }
 
   const controller = {
+    get enabled() { return enabled || preview; },
+    get failed() { return failed; },
     update(value = true) {
       const threshold = Number.isFinite(config.after) ? Number(config.after) : 0;
       active = typeof value === 'number' ? value > threshold : Boolean(value);

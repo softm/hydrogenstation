@@ -3,6 +3,7 @@ import { setupMobileMapFocus } from './mobile-map-focus.js';
 import { loadDataset } from './data.js';
 import { REGION_ORDER,statusOf,queryStations,priceText,hasPrice,distanceKm,formatTime,todayHours,fittedView,ageSeconds } from './domain.js';
 import { mountAdBanner } from './ads.js';
+import { mountBottomAd } from './ad-bottom.js';
 
 const $=id=>document.getElementById(id);
 const config=window.H2_CONFIG||{};
@@ -22,6 +23,11 @@ const listAdHost=createAdHost('adfit-banner--list');
 const listAd=mountAdBanner({host:listAdHost,root:$('list'),config:placement('list'),preview:false});
 const detailAdHost=createAdHost('adfit-banner--detail');
 const detailAd=mountAdBanner({host:detailAdHost,root:$('detail-content'),config:placement('detail'),preview:false});
+const bottomAdShell=document.createElement('aside');
+bottomAdShell.className='ad-bottom';bottomAdShell.hidden=true;bottomAdShell.setAttribute('aria-label','하단 광고');
+bottomAdShell.innerHTML='<button type="button" class="ad-bottom-toggle" aria-controls="bottomAdPanel" aria-expanded="false">광고 펼치기</button><section id="bottomAdPanel" class="adfit-banner ad-bottom-panel" aria-label="광고" hidden><span class="adfit-label">광고</span><div class="adfit-creative"></div></section>';
+document.body.append(bottomAdShell);
+mountBottomAd({shell:bottomAdShell,config:placement('bottom'),preview:false});
 
 for (const region of REGION_ORDER) {const option=document.createElement('option');option.value=region;option.textContent=region;$('region').append(option);}
 $('keyword').value=filters.keyword;
