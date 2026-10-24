@@ -25,8 +25,15 @@ if(config.dataBaseUrl!=='./data')throw new Error('Data must be same-origin');
 await writeFile(new URL('config.js',output),'window.H2_CONFIG = Object.freeze('+JSON.stringify(config,null,2)+');\n');
 vm.runInNewContext(await readFile(new URL('public/ad-config.js',root),'utf8'),context);
 const ad={...context.window.H2_AD_CONFIG};
-if(process.env.PUBLIC_ADFIT_BANNER_UNIT)ad.unit=process.env.PUBLIC_ADFIT_BANNER_UNIT;
-if(ad.unit&&!validAdUnit(ad.unit))throw new Error('Invalid AdFit unit');
+ad.placements={...ad.placements};
+ad.placements.list={...ad.placements.list};
+ad.placements.detail={...ad.placements.detail};
+if(process.env.PUBLIC_ADFIT_LIST_UNIT)ad.placements.list.unit=process.env.PUBLIC_ADFIT_LIST_UNIT;
+else if(process.env.PUBLIC_ADFIT_BANNER_UNIT)ad.placements.list.unit=process.env.PUBLIC_ADFIT_BANNER_UNIT;
+if(process.env.PUBLIC_ADFIT_DETAIL_UNIT)ad.placements.detail.unit=process.env.PUBLIC_ADFIT_DETAIL_UNIT;
+for(const [name,placement] of Object.entries(ad.placements)){
+ if(placement.unit&&!validAdUnit(placement.unit))throw new Error(`Invalid AdFit unit: ${name}`);
+}
 await writeFile(new URL('ad-config.js',output),'window.H2_AD_CONFIG = Object.freeze('+JSON.stringify(ad)+');\n');
 await writeFile(new URL('build-info.json',output),JSON.stringify({version:'1.0.0',builtAt:new Date().toISOString(),sourceRevision:process.env.GITHUB_SHA||null,scheduledCollectionEnabled:process.env.SCHEDULED_COLLECTION_ENABLED==='true',source:m.source.type,stationCount:m.totalStations},null,2)+'\n');
 console.log(`Built dist/: ${stations.length} real H2 stations; ${json.byteLength} -> ${gzip.byteLength} bytes. gzip and SHA-256 verified.`);
