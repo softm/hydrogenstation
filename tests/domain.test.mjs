@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {statusOf,queryStations,distanceKm,todayHours,fittedView} from '../public/js/domain.js';
-import {buildMarkerModels,markerHtml,createViewportGate} from '../public/js/map.js';
+import {buildMarkerModels,markerHtml,markerZIndex,createViewportGate} from '../public/js/map.js';
 const now=Date.parse('2026-10-21T01:00:00Z');
 const fixture={id:'001HSABC',name:'가 충전소',address:'충남 서산',region:'충남',lat:36.8,lng:126.4,vehicles:['car'],pricePerKg:9900,statusLabel:'여유',operationCode:'0',waitingTotal:0,observedAt:'2026-10-21T00:59:00Z',upstreamCheckedAt:'2026-10-21T00:58:00Z'};
 test('equipment dates are not status heartbeat; collection age controls open and queue',()=>{
@@ -40,6 +40,12 @@ test('H2 markers show price rather than EV charger count and escape provider fie
   const s={...fixture,name:'<img src=x onerror=alert(1)>'};
   const [model]=buildMarkerModels([s],{summaries:new Map([[s.id,{tone:'available',label:'여유'}]])});
   const html=markerHtml(model);assert.match(html,/9,900/);assert.match(html,/원\/kg/);assert.doesNotMatch(html,/<img/);assert.doesNotMatch(html,/총 .*기/);
+});
+test('top price markers stay above ordinary markers and selected marker stays highest',()=>{
+  assert.ok(markerZIndex({topRank:3})>markerZIndex({},248));
+  assert.ok(markerZIndex({topRank:1})>markerZIndex({topRank:3}));
+  assert.ok(markerZIndex({selected:true,topRank:null})>markerZIndex({topRank:1}));
+  assert.equal(markerZIndex({},37),37);
 });
 test('KST weekday, explicit rest day and unknown hours remain distinct',()=>{
   const s={hours:{wed:{start:'08:00',end:'22:00'},thu:{start:null,end:null},sun:{enabled:false}}};
