@@ -4,6 +4,7 @@ window.H2_AD_CONFIG = Object.freeze({
   script: 'https://t1.kakaocdn.net/kas/static/ba.min.js',
   placements: Object.freeze({
     list: Object.freeze({ unit: 'DAN-br2FK1ogdWkvz5PH', width: 320, height: 100, after: 6 }),
+    list2: Object.freeze({ unit: 'DAN-br2FK1ogdWkvz5PH', width: 320, height: 100, after: 12 }),
     detail: Object.freeze({ unit: 'DAN-wBqWgG5o345q4Zn9', width: 320, height: 100 }),
     bottom: Object.freeze({ unit: 'DAN-YJZxeizun0GjEKVU', width: 320, height: 100 })
   })
