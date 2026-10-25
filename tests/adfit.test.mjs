@@ -67,7 +67,7 @@ test('NOAD 콜백은 해당 지면만 비우고 숨긴다',()=>{
   assert.equal(state.host.dataset.adState,'unfilled');
 });
 
-test('하단 접이식은 기본 접힘이고 사용자가 펼칠 때 한 번만 요청한다',()=>{
+test('하단 접이식은 기본 열림이고 사용자가 접은 상태를 세션에 유지한다',()=>{
   const button=new Element(108,40),panel=new Element(320,132),creative=new Element(320,100),shell=new Element(320,40);
   panel.querySelector=selector=>selector==='.adfit-creative'?creative:null;
   shell.querySelector=selector=>selector==='.ad-bottom-toggle'?button:selector==='.ad-bottom-panel'?panel:null;
@@ -75,10 +75,10 @@ test('하단 접이식은 기본 접힘이고 사용자가 펼칠 때 한 번만
   class IntersectionObserver {constructor(callback){this.callback=callback;}observe(){this.callback([{isIntersecting:true}]);}unobserve(){}disconnect(){}}
   const win={navigator:{userAgent:'Browser/1'},location:{origin:'https://softm.github.io',pathname:'/hydrogenstation/'},IntersectionObserver,setTimeout(){return 1;},clearTimeout(){},sessionStorage:{getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value)}};
   mountBottomAd({shell,config:{enabled:true,unit:'DAN-YJZxeizun0GjEKVU',width:320,height:100},win,doc});
-  assert.equal(shell.hidden,false);assert.equal(panel.hidden,true);assert.equal(creative.children.length,0);
+  assert.equal(shell.hidden,false);assert.equal(panel.hidden,false);assert.equal(button.attributes['aria-expanded'],'true');assert.equal(creative.children.length,2);
+  button.click();
+  assert.equal(panel.hidden,true);assert.equal(button.attributes['aria-expanded'],'false');assert.equal(stored.get(BOTTOM_AD_STORAGE_KEY),'false');
   button.click();
   assert.equal(panel.hidden,false);assert.equal(button.attributes['aria-expanded'],'true');assert.equal(stored.get(BOTTOM_AD_STORAGE_KEY),'true');
-  assert.equal(creative.children.length,2);
-  button.click();button.click();
   assert.equal(creative.children.length,2);
 });
