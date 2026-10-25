@@ -20,7 +20,8 @@ const adConfig=window.H2_AD_CONFIG||{};
 const placement=name=>({enabled:adConfig.enabled,script:adConfig.script,...(adConfig.placements?.[name]||{})});
 function createAdHost(modifier){const host=document.createElement('section');host.className=`adfit-banner ${modifier}`;host.hidden=true;host.setAttribute('aria-label','광고');host.innerHTML='<span class="adfit-label">광고</span><div class="adfit-creative"></div>';return host;}
 const listAdHost=createAdHost('adfit-banner--list');
-const listAd=mountAdBanner({host:listAdHost,root:$('list'),config:placement('list'),preview:false});
+const listAdHosts=[listAdHost,createAdHost('adfit-banner--list')];
+const listAds=listAdHosts.map((host,index)=>mountAdBanner({host,root:$('list'),config:placement(index?`list${index+1}`:'list'),preview:false}));
 const detailAdHost=createAdHost('adfit-banner--detail');
 const detailAd=mountAdBanner({host:detailAdHost,root:$('detail-content'),config:placement('detail'),preview:false});
 const bottomAdShell=document.createElement('aside');
@@ -54,8 +55,8 @@ function render({preserveScroll=true}={}){
   $('list').setAttribute('aria-busy','false');
   if (state.rows.length) {
     const fragment=document.createDocumentFragment();
-    state.rows.forEach((s,index)=>{const template=document.createElement('template');template.innerHTML=card(s);fragment.append(template.content);if(index===5) fragment.append(listAdHost);});
-    $('list').replaceChildren(fragment);listAd.update(state.rows.length);
+    state.rows.forEach((s,index)=>{const template=document.createElement('template');template.innerHTML=card(s);fragment.append(template.content);if([5,11].includes(index))fragment.append(listAdHosts[(index+1)/6-1]);});
+    $('list').replaceChildren(fragment);listAds.forEach(ad=>ad.update(state.rows.length));
   } else {
     $('list').innerHTML='<div class="empty"><div class="empty-symbol">H₂</div><h2>조건에 맞는 충전소가 없어요</h2><p>지도를 넓히거나 검색 조건을 바꿔 보세요.\n상태가 오래된 곳은 ‘영업 확인’에서 제외됩니다.</p><button data-action="nation">전국 충전소 보기</button></div>';
   }
