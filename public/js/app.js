@@ -25,7 +25,7 @@ const detailAdHost=createAdHost('adfit-banner--detail');
 const detailAd=mountAdBanner({host:detailAdHost,root:$('detail-content'),config:placement('detail'),preview:false});
 const bottomAdShell=document.createElement('aside');
 bottomAdShell.className='ad-bottom';bottomAdShell.hidden=true;bottomAdShell.setAttribute('aria-label','하단 광고');
-bottomAdShell.innerHTML='<button type="button" class="ad-bottom-toggle" aria-controls="bottomAdPanel" aria-expanded="false">광고 펼치기</button><section id="bottomAdPanel" class="adfit-banner ad-bottom-panel" aria-label="광고" hidden><span class="adfit-label">광고</span><div class="adfit-creative"></div></section>';
+bottomAdShell.innerHTML='<button type="button" class="ad-bottom-toggle" aria-controls="bottomAdPanel" aria-expanded="true">광고 접기</button><section id="bottomAdPanel" class="adfit-banner ad-bottom-panel" aria-label="광고"><span class="adfit-label">광고</span><div class="adfit-creative"></div></section>';
 document.body.append(bottomAdShell);
 mountBottomAd({shell:bottomAdShell,config:placement('bottom'),preview:false});
 

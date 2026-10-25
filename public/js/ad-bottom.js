@@ -6,7 +6,7 @@ export function mountBottomAd({ shell, config, preview = false, win = window, do
   if (!shell) return { setExpanded() {}, destroy() {} };
   const button = shell.querySelector('.ad-bottom-toggle');
   const panel = shell.querySelector('.ad-bottom-panel');
-  let expanded = false;
+  let expanded = true;
   let resizeObserver;
   const syncSpace = () => {
     const height = shell.hidden ? 0 : Math.ceil(shell.getBoundingClientRect().height);
@@ -28,7 +28,10 @@ export function mountBottomAd({ shell, config, preview = false, win = window, do
     syncSpace();
     return { setExpanded() {}, destroy() {} };
   }
-  try { expanded = win.sessionStorage.getItem(BOTTOM_AD_STORAGE_KEY) === 'true'; } catch {}
+  try {
+    const stored = win.sessionStorage.getItem(BOTTOM_AD_STORAGE_KEY);
+    if (stored !== null) expanded = stored === 'true';
+  } catch {}
   shell.hidden = false;
   function sync() {
     panel.hidden = !expanded;
