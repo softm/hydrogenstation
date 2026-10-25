@@ -6,7 +6,7 @@
 |---|---|---|
 | 목록 인피드 | `DAN-br2FK1ogdWkvz5PH` | 검색 결과가 7개 이상일 때 6번째 카드 뒤, 실제 화면에 가까워졌을 때 한 번 요청 |
 | 충전소 상세 하단 | `DAN-wBqWgG5o345q4Zn9` | 사용자가 충전소 상세를 실제로 연 뒤, 하단 지면이 화면에 가까워졌을 때 한 번 요청 |
-| 하단 접이식 | `DAN-YJZxeizun0GjEKVU` | 기본 접힘. 사용자가 펼친 뒤 한 번 요청하고 같은 세션에서 선택 상태 유지 |
+| 하단 접이식 | `DAN-YJZxeizun0GjEKVU` | 기본 열림. 사용자가 접거나 다시 펼친 상태를 같은 세션에서 유지하고 광고는 한 번만 요청 |
 
 배포 빌드는 GitHub Actions Variables `PUBLIC_ADFIT_LIST_UNIT`, `PUBLIC_ADFIT_DETAIL_UNIT`, `PUBLIC_ADFIT_BOTTOM_UNIT`으로 같은 값을 주입할 수 있다. 저장소의 `public/ad-config.js`는 로컬·비상 빌드에서도 지면 구성이 유지되도록 전용 공개 ID를 기록한다.
 
