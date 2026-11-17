@@ -96,8 +96,11 @@
     overflow:visible;
   }
   body.h2-map-full .search-controls .title-row,
-  body.h2-map-full .search-controls .quick-filters,
-  body.h2-map-full .search-controls #extra-filters{display:none!important}
+  body.h2-map-full .search-controls .quick-filters{display:none!important}
+  body.h2-map-full .search-controls #extra-filters[hidden]{display:none!important}
+  body.h2-map-full .search-controls #extra-filters:not([hidden]){display:block!important;margin-top:8px;padding:10px 12px;border:1px solid #e0e8e5;border-radius:16px;background:#fffffff8;box-shadow:0 7px 22px rgba(17,24,39,.14)}
+  body.h2-map-full .search-controls #extra-filters:not([hidden]) .filter-row{display:flex;margin:0;gap:8px}
+  body.h2-map-full .search-controls #extra-filters:not([hidden]) .micro{margin:7px 2px 0;font-size:10px}
   body.h2-map-full .search-controls form{margin:0}
   body.h2-map-full .search-controls .search-box{
     min-height:62px;
