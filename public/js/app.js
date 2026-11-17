@@ -50,6 +50,7 @@ function render({preserveScroll=true}={}){
   state.priceRanks=topPriceRanks(state.rows);
   $('result-count').textContent=state.rows.length.toLocaleString('ko-KR');
   if($('focus-list-count'))$('focus-list-count').textContent=state.rows.length.toLocaleString('ko-KR');
+  if($('list-sheet-count'))$('list-sheet-count').textContent=state.rows.length.toLocaleString('ko-KR');
   if($('focus-favorite-count'))$('focus-favorite-count').textContent=favorites.size.toLocaleString('ko-KR');
   $('scope-label').textContent=filters.viewport?'현재 지도 안':filters.region||'전국 조회';
   $('list').setAttribute('aria-busy','false');
@@ -179,7 +180,7 @@ $('detail').addEventListener('click',async event=>{
   if(action==='close')closeDetail({restoreFocus:true});
   if(action==='share'){
     const station=state.stations.find(s=>s.id===state.selected);if(!station)return;
-    try{if(navigator.share)await navigator.share({title:station.name+' · 수소한눈',url:viewUrl(station)});else{await navigator.clipboard.writeText(viewUrl(station));toast('충전소 링크를 복사했습니다.');}}catch(error){if(error.name!=='AbortError')toast('주소창의 링크를 복사해 공유해 주세요.');}
+    try{if(navigator.share)await navigator.share({title:station.name+' · 수소충전소',url:viewUrl(station)});else{await navigator.clipboard.writeText(viewUrl(station));toast('충전소 링크를 복사했습니다.');}}catch(error){if(error.name!=='AbortError')toast('주소창의 링크를 복사해 공유해 주세요.');}
   }
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('detail').hidden)closeDetail({restoreFocus:true});});
@@ -204,10 +205,13 @@ try{
     dockList:$('focus-dock-list'),
     dockFavorites:$('focus-dock-favorites'),
     dockMore:$('focus-dock-more'),
+    listHandle:$('list-sheet-handle'),
+    listCollapse:$('list-sheet-collapse'),
+    listClose:$('list-sheet-close'),
     onResize:()=>state.map?.resize(),
     onModeChange:(mode)=>{
-      if(mode==='open-list'){mobileMapFocus.exit({restoreFocus:false});requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
-      if(mode==='open-favorites'){filters.favorite=true;$('favorites-only').checked=true;render({preserveScroll:false});mobileMapFocus.exit({restoreFocus:false});requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
+      if(mode==='open-list'){mobileMapFocus.openList();requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
+      if(mode==='open-favorites'){filters.favorite=true;$('favorites-only').checked=true;render({preserveScroll:false});mobileMapFocus.openList();requestAnimationFrame(()=>$('list').focus({preventScroll:true}));return;}
       const selected=state.stations.find(row=>row.id===state.selected);if(selected)state.map?.focus(selected,{zoom:Math.max(12,state.map.getZoom())});
     },
     onRequestClose:()=>closeDetail({restoreFocus:true})
