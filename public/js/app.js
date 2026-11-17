@@ -123,14 +123,23 @@ function search({move=false}={}){
   if(move){const view=fittedView(state.rows,$('map').clientWidth,$('map').clientHeight);if(view)state.map?.setCenter(view.center,view.zoom);}
 }
 async function locate({quiet=false}={}){
-  if(!navigator.geolocation){if(!quiet)toast('이 브라우저에서 위치 기능을 사용할 수 없습니다. 지역을 선택해 주세요.');return;}
+  if(!navigator.geolocation){$('location-status').textContent='위치 기능을 지원하지 않는 브라우저';if(!quiet)toast('이 브라우저에서 위치 기능을 사용할 수 없습니다. 지역을 선택해 주세요.');return false;}
+  $('location-status').textContent='현재 위치와 위치 권한 확인 중';
   $('locate').disabled=true;$('locate').textContent='위치 확인 중…';
-  navigator.geolocation.getCurrentPosition(position=>{
+  return new Promise(resolve=>navigator.geolocation.getCurrentPosition(position=>{
     state.origin={lat:position.coords.latitude,lng:position.coords.longitude};
     filters.viewport=true;filters.region='';$('region').value='';filters.sort='distance';$('sort').value='distance';
-    state.map?.locate(state.origin);state.map?.setCenter(state.origin,mobileMapFocus?.isMobile()?11:10);render();
-    $('locate').disabled=false;$('locate').textContent='◎ 내 위치';
-  },()=>{$('locate').disabled=false;$('locate').textContent='◎ 내 위치';if(!quiet)toast('위치를 확인하지 못했습니다. 브라우저 위치 권한을 허용하거나 지역을 선택해 주세요.');},{enableHighAccuracy:false,timeout:8000,maximumAge:60000});
+    state.map?.locate(state.origin);state.map?.setCenter(state.origin,mobileMapFocus?.isMobile()?13:12);render({preserveScroll:false});
+    $('locate').disabled=false;$('locate').textContent='◎ 내 위치';$('location-status').textContent='위치 권한 허용됨, 현재 위치 기준 표시';resolve(true);
+  },error=>{$('locate').disabled=false;$('locate').textContent='◎ 내 위치';$('location-status').textContent=error.code===1?'위치 권한 거부됨':'현재 위치 확인 실패';if(!quiet)toast(error.code===1?'현재 위치로 시작하려면 브라우저 설정에서 위치 권한을 허용해 주세요.':'현재 위치를 확인하지 못했습니다. 위치 서비스를 켜거나 지역을 선택해 주세요.');resolve(false);},{enableHighAccuracy:false,timeout:10000,maximumAge:60000}));
+}
+
+async function initializeLocation(){
+  if(!navigator.geolocation){await locate();return;}
+  if(navigator.permissions){
+    try{const permission=await navigator.permissions.query({name:'geolocation'});$('location-status').textContent=`위치 권한 ${permission.state==='granted'?'허용됨':permission.state==='denied'?'거부됨':'확인 필요'}`;permission.addEventListener?.('change',()=>{$('location-status').textContent=`위치 권한 ${permission.state==='granted'?'허용됨':permission.state==='denied'?'거부됨':'확인 필요'}`;});}catch{}
+  }
+  await locate();
 }
 async function refresh({initial=false}={}){
   if(refreshTask)return refreshTask;
@@ -223,7 +232,7 @@ try{
   if(shared){const s=state.stations.find(row=>row.id===shared);if(s){filters.vehicle='';$('vehicle').value='';selectStation(shared,{scroll:false,focus:!sharedView});}else toast('공유된 충전소를 현재 수집 목록에서 찾지 못했습니다.');}
   if(sharedView)state.map.setCenter(sharedView.center,sharedView.zoom);
   else if(!shared){if(filters.region||filters.keyword)search({move:true});else nation();}
-  if(!shared&&!sharedView&&navigator.permissions){try{const permission=await navigator.permissions.query({name:'geolocation'});if(permission.state==='granted')locate({quiet:true});}catch{}}
+  if(!shared&&!sharedView)await initializeLocation();
 }catch(error){toast('지도 연결을 확인하지 못했습니다. 충전소 목록과 검색은 계속 이용할 수 있습니다.');}
 setInterval(()=>{if(document.hidden)return;render();if(state.selected){const s=state.stations.find(row=>row.id===state.selected);if(s)detail(s);}},60000);
 setInterval(()=>{if(!document.hidden)refresh();},300000);
