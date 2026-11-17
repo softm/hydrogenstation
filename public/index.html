@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>수소한눈 · 가까운 수소충전소와 수소 가격</title>
+  <title>수소충전소 · 가까운 충전소와 수소 가격</title>
   <meta name="description" content="전국 수소차 충전소를 지도에서 찾고, 원/kg 수소 가격·차종·운영시간·대기 현황을 비교하세요. 한국석유관리원 하잉 공개 정보 기반.">
-  <meta name="theme-color" content="#075f66"><meta property="og:title" content="수소한눈 · 수소충전소 지도"><meta property="og:description" content="가까운 수소충전소, 가격부터 운영정보까지 한눈에.">
+  <meta name="theme-color" content="#075f66"><meta property="og:title" content="수소충전소 · 충전소 지도"><meta property="og:description" content="가까운 수소충전소, 가격부터 운영정보까지 한눈에.">
   <link rel="canonical" href="https://softm.github.io/hydrogenstation/"><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./css/app.css"><link rel="stylesheet" href="./css/ads.css">
   <script src="./config.js"></script><script src="./ad-config.js"></script><script type="module" src="./js/app.js"></script>
@@ -12,12 +12,18 @@
 <body>
   <a class="skip" href="#list">충전소 목록 바로가기</a>
   <header class="topbar">
-    <a class="brand" href="./" aria-label="수소한눈 홈"><span class="brand-icon">H₂</span><span>수소한눈<small>HYDROGEN, NEAR YOU</small></span></a>
+    <a class="brand" href="./" aria-label="수소충전소 홈"><span class="brand-icon">H₂</span><span>수소충전소<small>HYDROGEN, NEAR YOU</small></span></a>
     <p class="top-message">충전할 곳, 가격까지 한눈에.</p>
     <nav aria-label="서비스 메뉴"><a href="https://softm.github.io/evchargingstation/" target="_blank" rel="noopener noreferrer" class="sibling">전기차 충전 ↗</a><a href="./data-status.html">수집현황 ↗</a></nav>
   </header>
   <main class="workspace">
     <aside class="sidebar" aria-label="충전소 검색과 목록">
+      <div class="mobile-list-sheet-head">
+        <button type="button" id="list-sheet-handle" class="list-sheet-handle" aria-label="목록 패널 높이 조절"></button>
+        <strong>충전소 목록 <span id="list-sheet-count">0</span></strong>
+        <button type="button" id="list-sheet-collapse" aria-label="목록 패널 높이 전환">높이 조절</button>
+        <button type="button" id="list-sheet-close" aria-label="목록 닫기">×</button>
+      </div>
       <section class="search-controls">
         <div class="title-row"><h1>어디서 충전할까요?</h1><span class="source-pill">공식 출처 기반</span></div>
         <form id="search-form" role="search"><label class="search-box"><span aria-hidden="true">⌕</span><input id="keyword" type="search" aria-label="충전소명 또는 주소 검색" placeholder="충전소명, 지역, 주소 검색" autocomplete="off"><button type="submit" aria-label="검색">검색</button></label></form>
