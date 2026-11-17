@@ -346,3 +346,39 @@
   body.h2-map-full .ev-map-pin.is-top-price .ev-map-pin-label{bottom:calc(100% + 26px)}
   body.h2-map-full .ev-map-pin.is-top-price.rank-1{outline:3px solid #fff5d5;outline-offset:2px}
 }
+
+/* Mobile result sheet: follows the proven 주유한눈 map/list interaction. */
+.mobile-list-sheet-head{display:none}
+@media(max-width:760px){
+  body.h2-list-sheet .workspace>.sidebar{
+    display:flex!important;position:fixed!important;left:8px!important;right:8px!important;top:auto!important;bottom:0!important;
+    z-index:1300!important;width:auto!important;height:var(--h2-list-height,58dvh)!important;min-height:0!important;max-height:92dvh!important;
+    overflow:hidden!important;pointer-events:auto!important;border:0!important;border-radius:26px 26px 0 0!important;background:#fff!important;
+    box-shadow:0 -12px 38px rgba(17,63,57,.28)!important;transition:height .2s cubic-bezier(.2,.8,.2,1)
+  }
+  body.h2-list-sheet .workspace>.sidebar.is-dragging{transition:none!important}
+  body.h2-list-sheet .workspace>.sidebar>*{display:flex!important}
+  body.h2-list-sheet .workspace>.sidebar>.mobile-list-sheet-head{
+    position:relative;flex:0 0 54px;align-items:center;gap:8px;padding:14px 12px 7px 18px;border-bottom:1px solid #e8efec;background:#fffffff8
+  }
+  body.h2-list-sheet .mobile-list-sheet-head>strong{margin-right:auto;font-size:14px;color:#173f36}
+  body.h2-list-sheet .mobile-list-sheet-head>strong span{color:#087b7e}
+  body.h2-list-sheet .list-sheet-handle{position:absolute;left:50%;top:0;transform:translateX(-50%);width:76px;height:20px;border:0;background:transparent;touch-action:none}
+  body.h2-list-sheet .list-sheet-handle:before{content:"";position:absolute;left:50%;top:6px;transform:translateX(-50%);width:48px;height:5px;border-radius:999px;background:#c5d2ce}
+  body.h2-list-sheet #list-sheet-collapse{min-height:36px;padding:0 10px;border:1px solid #d6e4df;border-radius:10px;background:#f2f8f6;color:#0b6c62;font-size:11px;font-weight:800}
+  body.h2-list-sheet #list-sheet-close{width:36px;height:36px;border:0;border-radius:50%;background:#f1f4f3;color:#425d59;font-size:24px;line-height:1}
+  body.h2-list-sheet .search-controls{flex:0 0 auto;padding:8px 14px 9px;background:#fff}
+  body.h2-list-sheet .search-controls .title-row{display:none!important}
+  body.h2-list-sheet .search-box{min-height:46px;border:1px solid #dbe6e2;border-radius:16px;background:#f7faf9;box-shadow:none}
+  body.h2-list-sheet .search-box input{font-size:14px}
+  body.h2-list-sheet .search-box button{height:36px;padding:0 13px;border-radius:12px;background:#0b6d5f;font-weight:800}
+  body.h2-list-sheet .filter-row{overflow-x:auto;scrollbar-width:none}
+  body.h2-list-sheet .filter-row::-webkit-scrollbar{display:none}
+  body.h2-list-sheet .filter-row>label{min-width:112px}
+  body.h2-list-sheet .quick-filters{overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+  body.h2-list-sheet .list-meta{display:flex!important;flex:0 0 42px;padding:7px 16px}
+  body.h2-list-sheet .station-list{display:block!important;flex:1;min-height:0;overflow:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+  body.h2-list-sheet .sidebar-footer{display:none!important}
+  body.h2-list-sheet .mobile-focus-dock{display:none!important}
+  body.h2-list-sheet .map-search{display:none!important}
+}
